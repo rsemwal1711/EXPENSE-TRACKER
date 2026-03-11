@@ -1,0 +1,73 @@
+{
+  "users": [
+    {
+      "id": "147e",
+      "name": "RAJAT SEMWAL",
+      "email": "rajatsemwal17@gmail.com",
+      "password": "rs17",
+      "expenses": [
+        {
+          "id": 1773037566745,
+          "title": "Shoes",
+          "amount": 899,
+          "date": "2026-03-01"
+        },
+        {
+          "id": 1773037580998,
+          "title": "Shirt",
+          "amount": 1499,
+          "date": "2026-03-08"
+        }
+      ]
+    },
+    {
+      "id": "b562",
+      "name": "PRANVAT SINGH JOHAR",
+      "email": "pranvat@gmail.com",
+      "password": "pranvat08",
+      "expenses": [
+        {
+          "id": 1772519307923,
+          "title": "Biscuit",
+          "amount": 59,
+          "date": "2026-03-03"
+        },
+        {
+          "id": 1772519367533,
+          "title": "Cycle",
+          "amount": 9999,
+          "date": "2026-02-08"
+        }
+      ]
+    },
+    {
+      "id": "7be8",
+      "name": "Paras Verma",
+      "email": "paras30@gmail.com",
+      "password": "paras@30",
+      "expenses": []
+    },
+    {
+      "id": 1772519828595,
+      "name": "PRATYAKSH CHAUHAN",
+      "email": "honey@gmail.com",
+      "password": "honey",
+      "expenses": []
+    },
+    {
+      "id": 1772967214478,
+      "name": "RAJAT SEMWAL",
+      "email": "rajatsemwal175@gmail.com",
+      "password": "qaswed",
+      "expenses": []
+    },
+    {
+      "id": 1773067681041,
+      "name": "aaa",
+      "email": "rajat@gmail.com",
+      "password": "akak",
+      "expenses": []
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}

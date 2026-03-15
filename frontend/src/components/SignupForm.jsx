@@ -21,7 +21,7 @@ const SignupForm = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:4000/users", {
+      const response = await fetch("https://expensetracker-rs17.onrender.com/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

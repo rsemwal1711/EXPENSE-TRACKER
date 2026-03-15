@@ -19,7 +19,7 @@ const ExpenseTracker = () => {
   const fetchExpenses = useCallback(async () => {
     if (!user?.id) return;
     try {
-      const response = await fetch(`http://localhost:4000/expenses/${user.id}`);
+      const response = await fetch(`https://expensetracker-rs17.onrender.com/expenses/${user.id}`);
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
       setExpenses(data);
@@ -50,8 +50,8 @@ const ExpenseTracker = () => {
     try {
       const method = isEditing ? 'PUT' : 'POST';
       const url = isEditing
-        ? `http://localhost:4000/expenses/${user.id}/${editingId}`
-        : `http://localhost:4000/expenses/${user.id}`;
+        ? `https://expensetracker-rs17.onrender.com/expenses/${user.id}/${editingId}`
+        : `https://expensetracker-rs17.onrender.com/expenses/${user.id}`;
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -76,7 +76,7 @@ const ExpenseTracker = () => {
   const handleDelete = async (expenseId) => {
     if (!user?.id) return;
     try {
-      await fetch(`http://localhost:4000/expenses/${user.id}/${expenseId}`, { method: 'DELETE' });
+      await fetch(`https://expensetracker-rs17.onrender.com/expenses/${user.id}/${expenseId}`, { method: 'DELETE' });
       setExpenses(expenses.filter(e => e.id !== expenseId));
     } catch (err) {
       alert("Error deleting expense", err);

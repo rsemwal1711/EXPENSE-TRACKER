@@ -111,8 +111,8 @@ export default function LandingPage() {
               </div>
             </div>
           </button>
-          <button className="lp-btn lp-btn-ghost lp-btn--sm" onClick={() => navigate("/login")}>Sign In</button>
-          <button className="lp-btn lp-btn-primary lp-btn--sm" onClick={() => navigate("/signup")}>Get Started →</button>
+          {/* <button className="lp-btn lp-btn-ghost lp-btn--sm" onClick={() => navigate("/login")}>Sign In</button>
+          <button className="lp-btn lp-btn-primary lp-btn--sm" onClick={() => navigate("/signup")}>Get Started →</button> */}
         </div>
       </nav>
 
@@ -286,7 +286,7 @@ export default function LandingPage() {
             Stop wondering.<br />
             <span className="lp-title-outline">Start knowing.</span>
           </h2>
-          <p className="lp-cta-sub">Join 12,000+ people who took control of their finances with TrackMyCash. It's free to start.</p>
+          <p className="lp-cta-sub">Join 4+ people who took control of their finances with TrackMyCash. It's free to start.</p>
           <div className="lp-actions">
             <button className="lp-btn lp-btn-primary lp-btn--lg" onClick={() => navigate("/signup")}>
               <span>Create Free Account</span>

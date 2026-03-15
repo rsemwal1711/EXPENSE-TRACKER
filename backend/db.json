@@ -7,16 +7,10 @@
       "password": "rs17",
       "expenses": [
         {
-          "id": 1773037566745,
-          "title": "Shoes",
-          "amount": 899,
-          "date": "2026-03-01"
-        },
-        {
-          "id": 1773037580998,
-          "title": "Shirt",
-          "amount": 1499,
-          "date": "2026-03-08"
+          "id": 1773287219186,
+          "title": "pant",
+          "amount": 799,
+          "date": "2026-03-09"
         }
       ]
     },

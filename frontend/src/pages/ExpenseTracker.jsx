@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ExpenseTracker.css';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'https://expense-tracker-frontend-8171.onrender.com';
+
 const ExpenseTracker = () => {
   const [expenses, setExpenses] = useState([]);
   const [title, setTitle] = useState('');
@@ -19,7 +21,7 @@ const ExpenseTracker = () => {
   const fetchExpenses = useCallback(async () => {
     if (!user?._id) return;
     try {
-      const response = await fetch(`https://expense-tracker-frontend-8171.onrender.com/expenses/${user._id}`);
+      const response = await fetch(`${API_BASE}/expenses/${user._id}`);
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
       setExpenses(data);
@@ -50,8 +52,8 @@ const ExpenseTracker = () => {
     try {
       const method = isEditing ? 'PUT' : 'POST';
       const url = isEditing
-        ? `https://expense-tracker-frontend-8171.onrender.com/expenses/${user._id}/${editingId}`
-        : `https://expense-tracker-frontend-8171.onrender.com/expenses/${user._id}`;
+        ? `${API_BASE}/expenses/${user._id}/${editingId}`
+        : `${API_BASE}/expenses/${user._id}`;
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -76,7 +78,7 @@ const ExpenseTracker = () => {
   const handleDelete = async (expenseId) => {
     if (!user?._id) return;
     try {
-      await fetch(`https://expense-tracker-frontend-8171.onrender.com/expenses/${user._id}/${expenseId}`, { method: 'DELETE' });
+      await fetch(`${API_BASE}/expenses/${user._id}/${expenseId}`, { method: 'DELETE' });
       setExpenses(expenses.filter(e => e._id !== expenseId));
     } catch (err) {
       alert("Error deleting expense", err);

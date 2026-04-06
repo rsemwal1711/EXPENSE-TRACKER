@@ -17,16 +17,16 @@ const ExpenseTracker = () => {
   const user = userData ? JSON.parse(userData) : null;
 
   const fetchExpenses = useCallback(async () => {
-    if (!user?.id) return;
+    if (!user?._id) return;
     try {
-      const response = await fetch(`https://expensetracker-rs17.onrender.com/expenses/${user.id}`);
+      const response = await fetch(`http://localhost:4000/expenses/${user._id}`);
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
       setExpenses(data);
     } catch (err) {
       console.error("Fetch error:", err);
     }
-  }, [user?.id]);
+  }, [user?._id]);
 
   useEffect(() => {
     if (!user) {
@@ -46,12 +46,12 @@ const ExpenseTracker = () => {
 
   const handleAdd = async () => {
     if (!title || !amount || !date) return alert('Please fill title, amount, and date');
-    if (!user?.id) return;
+    if (!user?._id) return;
     try {
       const method = isEditing ? 'PUT' : 'POST';
       const url = isEditing
-        ? `https://expensetracker-rs17.onrender.com/expenses/${user.id}/${editingId}`
-        : `https://expensetracker-rs17.onrender.com/expenses/${user.id}`;
+        ? `http://localhost:4000/expenses/${user._id}/${editingId}`
+        : `http://localhost:4000/expenses/${user._id}`;
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -60,7 +60,7 @@ const ExpenseTracker = () => {
       const data = await response.json();
       if (!response.ok) { alert(data.message || "Failed to save expense"); return; }
       if (isEditing) {
-        setExpenses(prev => prev.map(e => e.id === editingId ? data : e));
+        setExpenses(prev => prev.map(e => e._id === editingId ? data : e));
         setIsEditing(false);
         setEditingId(null);
       } else {
@@ -74,10 +74,10 @@ const ExpenseTracker = () => {
   };
 
   const handleDelete = async (expenseId) => {
-    if (!user?.id) return;
+    if (!user?._id) return;
     try {
-      await fetch(`https://expensetracker-rs17.onrender.com/expenses/${user.id}/${expenseId}`, { method: 'DELETE' });
-      setExpenses(expenses.filter(e => e.id !== expenseId));
+      await fetch(`http://localhost:4000/expenses/${user._id}/${expenseId}`, { method: 'DELETE' });
+      setExpenses(expenses.filter(e => e._id !== expenseId));
     } catch (err) {
       alert("Error deleting expense", err);
     }
@@ -88,7 +88,7 @@ const ExpenseTracker = () => {
     setAmount(expense.amount.toString());
     setDate(expense.date);
     setIsEditing(true);
-    setEditingId(expense.id);
+    setEditingId(expense._id);
   };
 
   const handleCancelEdit = () => {
@@ -106,11 +106,11 @@ const ExpenseTracker = () => {
   if (!user) return null;
 
   const NAV_ITEMS = [
-    { id: 'overview',     icon: '◈', label: 'Overview' },
+    { id: 'overview', icon: '◈', label: 'Overview' },
     { id: 'transactions', icon: '⇄', label: 'Transactions' },
-    { id: 'goals',        icon: '◎', label: 'Goals' },
-    { id: 'analytics',    icon: '⌇', label: 'Analytics' },
-    { id: 'settings',     icon: '⚙', label: 'Settings' },
+    { id: 'goals', icon: '◎', label: 'Goals' },
+    { id: 'analytics', icon: '⌇', label: 'Analytics' },
+    { id: 'settings', icon: '⚙', label: 'Settings' },
   ];
 
   return (
@@ -148,15 +148,15 @@ const ExpenseTracker = () => {
             {darkMode ? (
               <>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="4" fill="currentColor"/>
-                  <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <circle cx="12" cy="12" r="4" fill="currentColor" />
+                  <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                 </svg>
                 Light Mode
               </>
             ) : (
               <>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" fill="currentColor"/>
+                  <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" fill="currentColor" />
                 </svg>
                 Dark Mode
               </>
@@ -173,7 +173,7 @@ const ExpenseTracker = () => {
             </div>
             <button className="sidebar-logout-btn" onClick={handleLogout} title="Logout">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
           </div>
@@ -207,9 +207,9 @@ const ExpenseTracker = () => {
         <section className="card">
           <h3>{isEditing ? 'Edit Expense' : 'Add Expense'}</h3>
           <div className="form-row">
-            <input type="text"   placeholder="Expense title" value={title}  onChange={(e) => setTitle(e.target.value)} />
-            <input type="date"   placeholder="Date"           value={date}   onChange={(e) => setDate(e.target.value)} />
-            <input type="number" placeholder="Amount"         value={amount} onChange={(e) => setAmount(e.target.value)} />
+            <input type="text" placeholder="Expense title" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <input type="date" placeholder="Date" value={date} onChange={(e) => setDate(e.target.value)} />
+            <input type="number" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} />
             <button className="primary-btn" onClick={handleAdd}>
               {isEditing ? 'Update' : 'Add'}
             </button>
@@ -227,7 +227,7 @@ const ExpenseTracker = () => {
           ) : (
             <ul className="expense-list">
               {expenses.map((expense) => (
-                <li key={expense.id} className="expense-item">
+                <li key={expense._id} className="expense-item">
                   <div className="expense-info">
                     <div className="expense-row">
                       <p className="expense-title">{expense.title}</p>
@@ -236,8 +236,8 @@ const ExpenseTracker = () => {
                     <span className="expense-amount">₹{expense.amount}</span>
                   </div>
                   <div className="expense-actions">
-                    <button className="edit-btn"   onClick={() => handleEdit(expense)}>Edit</button>
-                    <button className="delete-btn" onClick={() => handleDelete(expense.id)}>Delete</button>
+                    <button className="edit-btn" onClick={() => handleEdit(expense)}>Edit</button>
+                    <button className="delete-btn" onClick={() => handleDelete(expense._id)}>Delete</button>
                   </div>
                 </li>
               ))}

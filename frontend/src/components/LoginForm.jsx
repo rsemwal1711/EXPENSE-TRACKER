@@ -5,8 +5,8 @@ import './LoginForm.css';
 
 const LoginForm = () => {
   const [formData, setFormData] = useState({
-    email : '',
-    password : ''
+    email: '',
+    password: ''
   });
 
   const [loading, setLoading] = useState(false);
@@ -19,20 +19,20 @@ const LoginForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    try{
-      const response = await fetch('https://expensetracker-rs17.onrender.com/login', {
+    try {
+      const response = await fetch('http://localhost:4000/login', {
         method: 'POST',
-        headers: { 'Content-Type':'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
 
       const data = await response.json();
 
-      if(response.ok){
+      if (response.ok) {
         localStorage.setItem('user', JSON.stringify(data.user));
         navigate('/expense-tracker');
       }
-      else{
+      else {
         alert(data.message);
       }
     }
@@ -47,66 +47,66 @@ const LoginForm = () => {
 
   return (
     <div className="lc-root">
-        <div className="lc-orb lc-orb-1" />
-        <div className="lc-orb lc-orb-2" />
-        <div className="lc-grid" />
+      <div className="lc-orb lc-orb-1" />
+      <div className="lc-orb lc-orb-2" />
+      <div className="lc-grid" />
 
-        <div className="login-container">
-          <form className="login-form" onSubmit={handleSubmit}>
+      <div className="login-container">
+        <form className="login-form" onSubmit={handleSubmit}>
 
-            {/* Logo */}
-            <div className="lc-logo">
-              <span className="lc-logo-mark">⬡</span>
-              <span className="lc-logo-text">TrackMyCash</span>
-            </div>
+          {/* Logo */}
+          <div className="lc-logo">
+            <span className="lc-logo-mark">⬡</span>
+            <span className="lc-logo-text">TrackMyCash</span>
+          </div>
 
-            <h2>Welcome Back</h2>
-            <p className="lc-subtitle">Sign in to your account</p>
+          <h2>Welcome Back</h2>
+          <p className="lc-subtitle">Sign in to your account</p>
 
-            <div className="input-group">
-              <input
-                type="email"
-                name="email"
-                placeholder=" "
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-              <label>Email</label>
-            </div>
+          <div className="input-group">
+            <input
+              type="email"
+              name="email"
+              placeholder=" "
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+            <label>Email</label>
+          </div>
 
-            <div className="input-group">
-              <input
-                type="password"
-                name="password"
-                placeholder=" "
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
-              <label>Password</label>
-            </div>
+          <div className="input-group">
+            <input
+              type="password"
+              name="password"
+              placeholder=" "
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+            <label>Password</label>
+          </div>
 
-            <a href="#" className="lc-forgot">Forgot password?</a>
+          <a href="#" className="lc-forgot">Forgot password?</a>
 
-            <button type="submit">
-              {loading ? "Signing in…" : "Login"}
-            </button>
+          <button type="submit">
+            {loading ? "Signing in…" : "Login"}
+          </button>
 
-            <div className="lc-divider">
-              <div className="lc-divider-line" />
-              <span>OR</span>
-              <div className="lc-divider-line" />
-            </div>
+          <div className="lc-divider">
+            <div className="lc-divider-line" />
+            <span>OR</span>
+            <div className="lc-divider-line" />
+          </div>
 
-            <p className="signup-text">
-              Don't have an account?
-              <a href="/signup" className="signup-link">Sign up</a>
-            </p>
+          <p className="signup-text">
+            Don't have an account?
+            <a href="/signup" className="signup-link">Sign up</a>
+          </p>
 
-          </form>
-        </div>
+        </form>
       </div>
+    </div>
   )
 }
 

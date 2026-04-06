@@ -50,8 +50,8 @@ const ExpenseTracker = () => {
     try {
       const method = isEditing ? 'PUT' : 'POST';
       const url = isEditing
-        ? `http://localhost:4000/expenses/${user._id}/${editingId}`
-        : `http://localhost:4000/expenses/${user._id}`;
+        ? `https://expense-tracker-frontend-8171.onrender.com/expenses/${user._id}/${editingId}`
+        : `https://expense-tracker-frontend-8171.onrender.com/expenses/${user._id}`;
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -76,7 +76,7 @@ const ExpenseTracker = () => {
   const handleDelete = async (expenseId) => {
     if (!user?._id) return;
     try {
-      await fetch(`http://localhost:4000/expenses/${user._id}/${expenseId}`, { method: 'DELETE' });
+      await fetch(`https://expense-tracker-frontend-8171.onrender.com/expenses/${user._id}/${expenseId}`, { method: 'DELETE' });
       setExpenses(expenses.filter(e => e._id !== expenseId));
     } catch (err) {
       alert("Error deleting expense", err);

@@ -19,7 +19,7 @@ const ExpenseTracker = () => {
   const fetchExpenses = useCallback(async () => {
     if (!user?._id) return;
     try {
-      const response = await fetch(`http://localhost:4000/expenses/${user._id}`);
+      const response = await fetch(`https://expense-tracker-frontend-8171.onrender.com/expenses/${user._id}`);
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
       setExpenses(data);

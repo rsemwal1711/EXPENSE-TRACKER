@@ -19,6 +19,15 @@ const SignupForm = () => {
 
   const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000' : window.location.origin);
 
+  const parseJsonSafely = async (response) => {
+    const text = await response.text();
+    try {
+      return text ? JSON.parse(text) : null;
+    } catch {
+      return { message: text || 'Invalid JSON response', status: response.status, body: text };
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -28,12 +37,12 @@ const SignupForm = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-      const data = await response.json();
+      const data = await parseJsonSafely(response);
       if (response.ok) {
         localStorage.setItem("user", JSON.stringify(data.user));
         navigate("/expense-tracker");
       } else {
-        alert(data.message);
+        alert(data.message || `Signup failed (${response.status})`);
       }
     } catch (error) {
       console.error("Error:", error);

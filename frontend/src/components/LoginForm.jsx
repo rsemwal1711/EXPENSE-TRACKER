@@ -16,7 +16,7 @@ const LoginForm = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'https://expense-tracker-backend-1ttg.onrender.com/' : window.location.origin);
+  const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000' : 'https://expense-tracker-backend-1ttg.onrender.com');
 
   const parseJsonSafely = async (response) => {
     const text = await response.text();

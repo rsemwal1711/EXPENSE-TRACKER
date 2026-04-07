@@ -77,7 +77,8 @@ export const signup = async (req, res) => {
     res.status(201).json({ message: "Signup successful", user: newUser });
 
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    console.error('Signup error:', err);
+    res.status(500).json({ message: err.message || "Server error" });
   }
 };
 
@@ -95,6 +96,7 @@ export const login = async (req, res) => {
     res.json({ message: "Login successful", user });
 
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    console.error('Login error:', err);
+    res.status(500).json({ message: err.message || "Server error" });
   }
 };

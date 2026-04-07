@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ExpenseTracker.css';
 
-const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'https://expense-tracker-frontend-8171.onrender.com' : window.location.origin);
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000' : 'https://expense-tracker-backend-1ttg.onrender.com');
 
 const ExpenseTracker = () => {
   const [expenses, setExpenses] = useState([]);

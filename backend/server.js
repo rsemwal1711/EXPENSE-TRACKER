@@ -60,10 +60,14 @@ mongoose.connect(process.env.MONGO_URI)
 app.use(authRoutes);
 app.use(expenseRoutes);
 
-app.use(express.static(path.join(__dirname, "../frontend/dist")));
+// app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
-app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/dist", "index.html"));
+// app.get(/.*/, (req, res) => {
+//   res.sendFile(path.join(__dirname, "../frontend/dist", "index.html"));
+// });
+
+app.get("/", (req, res) => {
+  res.send("API is running 🚀");
 });
 
 const PORT = process.env.PORT || 4000;

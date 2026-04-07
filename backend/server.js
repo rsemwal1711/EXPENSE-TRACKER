@@ -57,26 +57,40 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// connect to mongodb
-mongoose.connect(process.env.MONGO_URI)
-
-  .then(() => console.log("MongoDB connected"))
-  .catch(err => console.log(err));
-
-app.use(authRoutes);
-app.use(expenseRoutes);
-
-// app.use(express.static(path.join(__dirname, "../frontend/dist")));
-
-// app.get(/.*/, (req, res) => {
-//   res.sendFile(path.join(__dirname, "../frontend/dist", "index.html"));
-// });
-
-app.get("/", (req, res) => {
-  res.send("API is running 🚀");
-});
-
 const PORT = process.env.PORT || 4000;
+const MONGO_URI = process.env.MONGO_URI;
+
+if (!MONGO_URI) {
+  console.error('Missing MONGO_URI in environment');
+  process.exit(1);
+}
+
+const startServer = async () => {
+  try {
+    await mongoose.connect(MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 10000
+    });
+    console.log('MongoDB connected');
+
+    app.use(authRoutes);
+    app.use(expenseRoutes);
+
+    app.get('/', (req, res) => {
+      res.send('API is running 🚀');
+    });
+
+    app.listen(PORT, () => {
+      console.log(`running on port : ${PORT}`);
+    });
+  } catch (err) {
+    console.error('MongoDB connection failed:', err);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 app.listen(PORT, () => {
   console.log(`running on port : ${PORT}`);

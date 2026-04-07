@@ -21,7 +21,7 @@ const ExpenseTracker = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
-  const [darkMode, setDarkMode] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
   const userData = localStorage.getItem('user');
@@ -47,13 +47,11 @@ const ExpenseTracker = () => {
     }
   }, [user, navigate, fetchExpenses]);
 
-  useEffect(() => {
-    if (darkMode) {
-      document.body.classList.add("dark");
-    } else {
-      document.body.classList.remove("dark");
-    }
-  }, [darkMode]);
+
+
+  const closeSidebar = () => {
+    setSidebarOpen(false);
+  };
 
   const handleAdd = async () => {
     if (!title || !amount || !date) return alert('Please fill title, amount, and date');
@@ -113,6 +111,7 @@ const ExpenseTracker = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('user');
+    setSidebarOpen(false);
     navigate('/login');
   };
 
@@ -129,7 +128,7 @@ const ExpenseTracker = () => {
   ];
 
   return (
-    <div className={`app-shell ${darkMode ? 'dark' : ''}`}>
+    <div className={`app-shell ${sidebarOpen ? 'sidebar-open' : ''}`}>
 
       {/* ── Sidebar ── */}
       <aside className="sidebar">
@@ -146,7 +145,10 @@ const ExpenseTracker = () => {
             <button
               key={item.id}
               className={`sidebar-nav-item ${activeTab === item.id ? 'sidebar-nav-item--active' : ''} ${item.id !== 'overview' ? 'sidebar-nav-item--disabled' : ''}`}
-              onClick={() => item.id === 'overview' && setActiveTab(item.id)}
+              onClick={() => {
+                if (item.id === 'overview') setActiveTab(item.id);
+                closeSidebar();
+              }}
             >
               <span className="sidebar-nav-icon">{item.icon}</span>
               <span className="sidebar-nav-label">{item.label}</span>
@@ -157,27 +159,8 @@ const ExpenseTracker = () => {
           ))}
         </nav>
 
-        {/* Bottom: theme + logout */}
+        {/* Bottom: logout */}
         <div className="sidebar-bottom">
-          <button className="sidebar-theme-btn" onClick={() => setDarkMode(!darkMode)}>
-            {darkMode ? (
-              <>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="4" fill="currentColor" />
-                  <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-                Light Mode
-              </>
-            ) : (
-              <>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" fill="currentColor" />
-                </svg>
-                Dark Mode
-              </>
-            )}
-          </button>
-
           <div className="sidebar-user">
             <div className="sidebar-user-avatar">
               {user.name?.charAt(0).toUpperCase()}
@@ -200,11 +183,19 @@ const ExpenseTracker = () => {
 
         {/* Header */}
         <header className="dashboard-header">
+          <button className="hamburger-menu" onClick={() => setSidebarOpen(!sidebarOpen)} title="Toggle Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
           <div>
             <h2 className="dashboard-title">Overview</h2>
             <p className="welcome-text">Welcome back, {user.name}</p>
           </div>
         </header>
+
+        {/* Mobile Sidebar Overlay */}
+        {sidebarOpen && <div className="sidebar-overlay" onClick={closeSidebar}></div>}
 
         {/* Stats */}
         <section className="stats-card">

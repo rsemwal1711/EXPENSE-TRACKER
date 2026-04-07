@@ -91,7 +91,8 @@ export const getExpenses = async (req, res) => {
     res.json(user.expenses);
 
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    console.error('Get expenses error:', err);
+    res.status(500).json({ message: err.message || "Server error" });
   }
 };
 
@@ -113,7 +114,8 @@ export const addExpense = async (req, res) => {
     res.status(201).json(newExpense);
 
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    console.error('Add expense error:', err);
+    res.status(500).json({ message: err.message || "Server error" });
   }
 };
 
@@ -137,7 +139,8 @@ export const deleteExpense = async (req, res) => {
     res.json({ message: "Expense deleted" });
 
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    console.error('Delete expense error:', err);
+    res.status(500).json({ message: err.message || "Server error" });
   }
 };
 
@@ -167,6 +170,7 @@ export const updateExpense = async (req, res) => {
     res.json(user.expenses[expenseIndex]);
 
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    console.error('Update expense error:', err);
+    res.status(500).json({ message: err.message || "Server error" });
   }
 };

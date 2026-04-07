@@ -4,6 +4,15 @@ import './ExpenseTracker.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000' : 'https://expense-tracker-backend-1ttg.onrender.com');
 
+const parseJsonSafely = async (response) => {
+  const text = await response.text();
+  try {
+    return text ? JSON.parse(text) : null;
+  } catch {
+    return { message: text || 'Invalid JSON response', status: response.status, body: text };
+  }
+};
+
 const ExpenseTracker = () => {
   const [expenses, setExpenses] = useState([]);
   const [title, setTitle] = useState('');
@@ -59,8 +68,12 @@ const ExpenseTracker = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, amount: parseFloat(amount), date })
       });
-      const data = await response.json();
-      if (!response.ok) { alert(data.message || "Failed to save expense"); return; }
+      const data = await parseJsonSafely(response);
+      if (!response.ok) {
+        console.error('Expense save failed', response.status, data);
+        alert(data.message || `Failed to save expense (${response.status})`);
+        return;
+      }
       if (isEditing) {
         setExpenses(prev => prev.map(e => e._id === editingId ? data : e));
         setIsEditing(false);

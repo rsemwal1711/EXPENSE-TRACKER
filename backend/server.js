@@ -67,10 +67,14 @@ if (!MONGO_URI) {
 
 const startServer = async () => {
   try {
+    console.log('Connecting to MongoDB...', MONGO_URI ? 'URI found' : 'NO URI PROVIDED');
+
     await mongoose.connect(MONGO_URI, {
-      serverSelectionTimeoutMS: 10000
+      serverSelectionTimeoutMS: 30000,
+      socketTimeoutMS: 45000
     });
-    console.log('MongoDB connected');
+
+    console.log('✅ MongoDB connected successfully');
 
     app.use(authRoutes);
     app.use(expenseRoutes);
@@ -80,16 +84,13 @@ const startServer = async () => {
     });
 
     app.listen(PORT, () => {
-      console.log(`running on port : ${PORT}`);
+      console.log(`✅ Server running on port : ${PORT}`);
     });
   } catch (err) {
-    console.error('MongoDB connection failed:', err);
+    console.error('❌ MongoDB connection failed:', err.message);
+    console.error('Full error:', err);
     process.exit(1);
   }
 };
 
 startServer();
-
-app.listen(PORT, () => {
-  console.log(`running on port : ${PORT}`);
-});

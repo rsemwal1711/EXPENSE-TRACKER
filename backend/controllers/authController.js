@@ -59,8 +59,13 @@ const User = mongoose.models.User || mongoose.model("User", userSchema);
 export const signup = async (req, res) => {
   const { name, email, password } = req.body;
 
+  if (!name || !email || !password) {
+    return res.status(400).json({ message: "Name, email, and password required" });
+  }
+
   try {
-    const existingUser = await User.findOne({ email });
+    console.log('Signup attempt for:', email);
+    const existingUser = await User.findOne({ email }).maxTimeMS(10000);
 
     if (existingUser)
       return res.status(400).json({ message: "User already exists" });
@@ -77,8 +82,12 @@ export const signup = async (req, res) => {
     res.status(201).json({ message: "Signup successful", user: newUser });
 
   } catch (err) {
-    console.error('Signup error:', err);
-    res.status(500).json({ message: err.message || "Server error" });
+    console.error('Signup error:', err.message);
+    if (err.name === 'MongoServerSelectionError') {
+      res.status(503).json({ message: "Database connection failed" });
+    } else {
+      res.status(500).json({ message: err.message || "Server error" });
+    }
   }
 };
 
@@ -87,8 +96,13 @@ export const signup = async (req, res) => {
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
+  if (!email || !password) {
+    return res.status(400).json({ message: "Email and password required" });
+  }
+
   try {
-    const user = await User.findOne({ email, password });
+    console.log('Login attempt for:', email);
+    const user = await User.findOne({ email, password }).maxTimeMS(10000);
 
     if (!user)
       return res.status(401).json({ message: "Invalid email or password" });
@@ -96,7 +110,11 @@ export const login = async (req, res) => {
     res.json({ message: "Login successful", user });
 
   } catch (err) {
-    console.error('Login error:', err);
-    res.status(500).json({ message: err.message || "Server error" });
+    console.error('Login error:', err.message);
+    if (err.name === 'MongoServerSelectionError') {
+      res.status(503).json({ message: "Database connection failed" });
+    } else {
+      res.status(500).json({ message: err.message || "Server error" });
+    }
   }
 };

@@ -96,6 +96,27 @@ export const getExpenses = async (req, res) => {
   }
 };
 
+// GET SINGLE EXPENSE
+export const getExpense = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+
+    if (!user)
+      return res.status(404).json({ message: "User not found" });
+
+    const expense = user.expenses.find(e => e._id === req.params.expenseId);
+
+    if (!expense)
+      return res.status(404).json({ message: "Expense not found" });
+
+    res.json(expense);
+
+  } catch (err) {
+    console.error('Get expense error:', err);
+    res.status(500).json({ message: err.message || "Server error" });
+  }
+};
+
 
 // ADD EXPENSE
 export const addExpense = async (req, res) => {

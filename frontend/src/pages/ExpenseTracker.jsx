@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ExpenseTracker.css';
+import Transactions from './Transactions';
+import Goals from './Goals';
+import Analytics from './Analytics';
+import Settings from './Settings';
 
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000' : 'https://expense-tracker-backend-1ttg.onrender.com');
 
@@ -15,11 +19,6 @@ const parseJsonSafely = async (response) => {
 
 const ExpenseTracker = () => {
   const [expenses, setExpenses] = useState([]);
-  const [title, setTitle] = useState('');
-  const [amount, setAmount] = useState('');
-  const [date, setDate] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
-  const [editingId, setEditingId] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
@@ -47,67 +46,7 @@ const ExpenseTracker = () => {
     }
   }, [user, navigate, fetchExpenses]);
 
-
-
-  const closeSidebar = () => {
-    setSidebarOpen(false);
-  };
-
-  const handleAdd = async () => {
-    if (!title || !amount || !date) return alert('Please fill title, amount, and date');
-    if (!user?._id) return;
-    try {
-      const method = isEditing ? 'PUT' : 'POST';
-      const url = isEditing
-        ? `${API_BASE}/expenses/${user._id}/${editingId}`
-        : `${API_BASE}/expenses/${user._id}`;
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, amount: parseFloat(amount), date })
-      });
-      const data = await parseJsonSafely(response);
-      if (!response.ok) {
-        console.error('Expense save failed', response.status, data);
-        alert(data.message || `Failed to save expense (${response.status})`);
-        return;
-      }
-      if (isEditing) {
-        setExpenses(prev => prev.map(e => e._id === editingId ? data : e));
-        setIsEditing(false);
-        setEditingId(null);
-      } else {
-        setExpenses(prev => [...prev, data]);
-      }
-      setTitle(''); setAmount(''); setDate('');
-    } catch (error) {
-      console.error(error);
-      alert("Server not responding");
-    }
-  };
-
-  const handleDelete = async (expenseId) => {
-    if (!user?._id) return;
-    try {
-      await fetch(`${API_BASE}/expenses/${user._id}/${expenseId}`, { method: 'DELETE' });
-      setExpenses(expenses.filter(e => e._id !== expenseId));
-    } catch (err) {
-      alert("Error deleting expense", err);
-    }
-  };
-
-  const handleEdit = (expense) => {
-    setTitle(expense.title);
-    setAmount(expense.amount.toString());
-    setDate(expense.date);
-    setIsEditing(true);
-    setEditingId(expense._id);
-  };
-
-  const handleCancelEdit = () => {
-    setTitle(''); setAmount(''); setDate('');
-    setIsEditing(false); setEditingId(null);
-  };
+  const closeSidebar = () => setSidebarOpen(false);
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -127,39 +66,98 @@ const ExpenseTracker = () => {
     { id: 'settings', icon: '⚙', label: 'Settings' },
   ];
 
+  const PAGE_TITLES = {
+    overview: 'Overview',
+    transactions: 'Transactions',
+    goals: 'Goals',
+    analytics: 'Analytics',
+    settings: 'Settings',
+  };
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'transactions':
+        return <Transactions />;
+      case 'goals':
+        return <Goals />;
+      case 'analytics':
+        return <Analytics />;
+      case 'settings':
+        return <Settings />;
+      default:
+        return (
+          <>
+            {/* Stats */}
+            <section className="stats-card">
+              <div className="stat-box">
+                <span>Total Expenses</span>
+                <h3>₹{total.toLocaleString('en-IN')}</h3>
+              </div>
+              <div className="stat-box">
+                <span>Total Entries</span>
+                <h3>{expenses.length}</h3>
+              </div>
+            </section>
+
+            {/* Expense list */}
+            <section className="card">
+              <h3>Recent Expenses</h3>
+              {expenses.length === 0 ? (
+                <p className="empty-state">No expenses recorded yet.</p>
+              ) : (
+                <ul className="expense-list">
+                  {expenses.slice(0, 5).map((expense) => (
+                    <li key={expense._id} className="expense-item" onClick={() => navigate(`/transaction/${expense._id}`)} style={{ cursor: 'pointer' }}>
+                      <div className="expense-info">
+                        <div className="expense-row">
+                          <p className="expense-title">{expense.title}</p>
+                          {expense.date && <p className="expense-date">{expense.date}</p>}
+                        </div>
+                        <span className="expense-amount">₹{expense.amount}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {expenses.length > 5 && (
+                <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                  <button className="primary-btn" onClick={() => setActiveTab('transactions')}>
+                    View All Transactions
+                  </button>
+                </div>
+              )}
+            </section>
+          </>
+        );
+    }
+  };
+
   return (
     <div className={`app-shell ${sidebarOpen ? 'sidebar-open' : ''}`}>
 
       {/* ── Sidebar ── */}
       <aside className="sidebar">
-
-        {/* Logo */}
         <div className="sidebar-logo">
           <span className="sidebar-logo-icon">⬡</span>
           <span className="sidebar-logo-text">TrackMyCash</span>
         </div>
 
-        {/* Nav */}
         <nav className="sidebar-nav">
           {NAV_ITEMS.map(item => (
             <button
               key={item.id}
-              className={`sidebar-nav-item ${activeTab === item.id ? 'sidebar-nav-item--active' : ''} ${item.id !== 'overview' ? 'sidebar-nav-item--disabled' : ''}`}
+              className={`sidebar-nav-item ${activeTab === item.id ? 'sidebar-nav-item--active' : ''}`}
               onClick={() => {
-                if (item.id === 'overview') setActiveTab(item.id);
+                setActiveTab(item.id);
                 closeSidebar();
               }}
             >
               <span className="sidebar-nav-icon">{item.icon}</span>
               <span className="sidebar-nav-label">{item.label}</span>
-              {item.id !== 'overview' && (
-                <span className="sidebar-nav-soon">soon</span>
-              )}
             </button>
           ))}
         </nav>
 
-        {/* Bottom: logout */}
         <div className="sidebar-bottom">
           <div className="sidebar-user">
             <div className="sidebar-user-avatar">
@@ -181,7 +179,6 @@ const ExpenseTracker = () => {
       {/* ── Main content ── */}
       <div className="dashboard">
 
-        {/* Header */}
         <header className="dashboard-header">
           <button className="hamburger-menu" onClick={() => setSidebarOpen(!sidebarOpen)} title="Toggle Menu">
             <span></span>
@@ -189,67 +186,14 @@ const ExpenseTracker = () => {
             <span></span>
           </button>
           <div>
-            <h2 className="dashboard-title">Overview</h2>
+            <h2 className="dashboard-title">{PAGE_TITLES[activeTab]}</h2>
             <p className="welcome-text">Welcome back, {user.name}</p>
           </div>
         </header>
 
-        {/* Mobile Sidebar Overlay */}
         {sidebarOpen && <div className="sidebar-overlay" onClick={closeSidebar}></div>}
 
-        {/* Stats */}
-        <section className="stats-card">
-          <div className="stat-box">
-            <span>Total Expenses</span>
-            <h3>₹{total.toLocaleString('en-IN')}</h3>
-          </div>
-          <div className="stat-box">
-            <span>Total Entries</span>
-            <h3>{expenses.length}</h3>
-          </div>
-        </section>
-
-        {/* Add / Edit form */}
-        <section className="card">
-          <h3>{isEditing ? 'Edit Expense' : 'Add Expense'}</h3>
-          <div className="form-row">
-            <input type="text" placeholder="Expense title" value={title} onChange={(e) => setTitle(e.target.value)} />
-            <input type="date" placeholder="Date" value={date} onChange={(e) => setDate(e.target.value)} />
-            <input type="number" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} />
-            <button className="primary-btn" onClick={handleAdd}>
-              {isEditing ? 'Update' : 'Add'}
-            </button>
-            {isEditing && (
-              <button className="cancel-btn" onClick={handleCancelEdit}>Cancel</button>
-            )}
-          </div>
-        </section>
-
-        {/* Expense list */}
-        <section className="card">
-          <h3>Recent Expenses</h3>
-          {expenses.length === 0 ? (
-            <p className="empty-state">No expenses recorded yet.</p>
-          ) : (
-            <ul className="expense-list">
-              {expenses.map((expense) => (
-                <li key={expense._id} className="expense-item">
-                  <div className="expense-info">
-                    <div className="expense-row">
-                      <p className="expense-title">{expense.title}</p>
-                      {expense.date && <p className="expense-date">{expense.date}</p>}
-                    </div>
-                    <span className="expense-amount">₹{expense.amount}</span>
-                  </div>
-                  <div className="expense-actions">
-                    <button className="edit-btn" onClick={() => handleEdit(expense)}>Edit</button>
-                    <button className="delete-btn" onClick={() => handleDelete(expense._id)}>Delete</button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        {renderContent()}
 
       </div>
     </div>

@@ -112,7 +112,7 @@ const LoginForm = () => {
 
           <p className="signup-text">
             Don't have an account?
-            <a href="/signup" className="signup-link">Sign up</a>
+            <Link to="/signup" className="signup-link">Sign up</Link>
           </p>
 
         </form>

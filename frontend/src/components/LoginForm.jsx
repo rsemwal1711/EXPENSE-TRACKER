@@ -98,8 +98,6 @@ const LoginForm = () => {
             <label>Password</label>
           </div>
 
-          <a href="#" className="lc-forgot">Forgot password?</a>
-
           <button type="submit">
             {loading ? "Signing in…" : "Login"}
           </button>

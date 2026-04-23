@@ -21,10 +21,12 @@ const ExpenseTracker = () => {
   const [expenses, setExpenses] = useState([]);
   const [activeTab, setActiveTab] = useState('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+  const [user, setUser] = useState(() => {
+    const userData = localStorage.getItem('user');
+    return userData ? JSON.parse(userData) : null;
+  });
   const navigate = useNavigate();
-
-  const userData = localStorage.getItem('user');
-  const user = userData ? JSON.parse(userData) : null;
 
   const fetchExpenses = useCallback(async () => {
     if (!user?._id) return;
@@ -46,6 +48,41 @@ const ExpenseTracker = () => {
     }
   }, [user, navigate, fetchExpenses]);
 
+  useEffect(() => {
+    document.body.classList.toggle('light', theme === 'light');
+  }, [theme]);
+
+  // Listen for localStorage changes (when user profile is updated)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const userData = localStorage.getItem('user');
+      const updatedUser = userData ? JSON.parse(userData) : null;
+      setUser(updatedUser);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    // Also listen for custom events (for same-tab updates)
+    const handleUserUpdate = () => {
+      const userData = localStorage.getItem('user');
+      const updatedUser = userData ? JSON.parse(userData) : null;
+      setUser(updatedUser);
+    };
+
+    window.addEventListener('userProfileUpdated', handleUserUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('userProfileUpdated', handleUserUpdate);
+    };
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
+    localStorage.setItem('theme', nextTheme);
+  };
+
   const closeSidebar = () => setSidebarOpen(false);
 
   const handleLogout = () => {
@@ -55,6 +92,33 @@ const ExpenseTracker = () => {
   };
 
   const total = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const monthTotal = expenses
+    .filter(e => e.date?.startsWith(currentMonth))
+    .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const averageExpense = expenses.length ? total / expenses.length : 0;
+
+  // Calculate additional stats
+  const lastMonth = new Date();
+  lastMonth.setMonth(lastMonth.getMonth() - 1);
+  const lastMonthKey = lastMonth.toISOString().slice(0, 7);
+  const lastMonthTotal = expenses
+    .filter(e => e.date?.startsWith(lastMonthKey))
+    .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const monthChange = lastMonthTotal ? ((monthTotal - lastMonthTotal) / lastMonthTotal * 100) : 0;
+
+  const todayExpenses = expenses
+    .filter(e => e.date === new Date().toISOString().split('T')[0])
+    .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+
+  const weeklyExpenses = expenses
+    .filter(e => {
+      const expenseDate = new Date(e.date);
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return expenseDate >= weekAgo;
+    })
+    .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
 
   if (!user) return null;
 
@@ -87,43 +151,166 @@ const ExpenseTracker = () => {
       default:
         return (
           <>
-            {/* Stats */}
-            <section className="stats-card">
-              <div className="stat-box">
-                <span>Total Expenses</span>
-                <h3>₹{total.toLocaleString('en-IN')}</h3>
-              </div>
-              <div className="stat-box">
-                <span>Total Entries</span>
-                <h3>{expenses.length}</h3>
+            {/* Quick Actions */}
+            <section className="quick-actions">
+              <h3>Quick Actions</h3>
+              <div className="quick-actions-grid">
+                <button
+                  className="quick-action-btn"
+                  onClick={() => setActiveTab('transactions')}
+                >
+                  <span className="quick-action-icon">➕</span>
+                  <span>Add Expense</span>
+                </button>
+                <button
+                  className="quick-action-btn"
+                  onClick={() => setActiveTab('analytics')}
+                >
+                  <span className="quick-action-icon">📊</span>
+                  <span>View Analytics</span>
+                </button>
+                <button
+                  className="quick-action-btn"
+                  onClick={() => setActiveTab('goals')}
+                >
+                  <span className="quick-action-icon">🎯</span>
+                  <span>Set Goals</span>
+                </button>
+                <button
+                  className="quick-action-btn"
+                  onClick={() => setActiveTab('settings')}
+                >
+                  <span className="quick-action-icon">⚙️</span>
+                  <span>Settings</span>
+                </button>
               </div>
             </section>
 
-            {/* Expense list */}
-            <section className="card">
-              <h3>Recent Expenses</h3>
+            {/* Overview cards */}
+            <section className="overview-cards">
+              <div className="overview-card overview-card--large">
+                <div>
+                  <span className="overview-card-label">Total expenses</span>
+                  <h3>₹{total.toLocaleString('en-IN')}</h3>
+                  <p className="overview-card-text">All transactions recorded so far.</p>
+                </div>
+                <div className="overview-card-icon">💰</div>
+              </div>
+              <div className="overview-card">
+                <span className="overview-card-label">This month</span>
+                <h3>₹{monthTotal.toLocaleString('en-IN')}</h3>
+                <p className="overview-card-text">
+                  {monthChange > 0 ? '↑' : '↓'} {Math.abs(monthChange).toFixed(1)}% from last month
+                </p>
+                <div className="overview-card-icon">📅</div>
+              </div>
+              <div className="overview-card">
+                <span className="overview-card-label">This week</span>
+                <h3>₹{weeklyExpenses.toLocaleString('en-IN')}</h3>
+                <p className="overview-card-text">Expenses in the last 7 days.</p>
+                <div className="overview-card-icon">📈</div>
+              </div>
+              <div className="overview-card">
+                <span className="overview-card-label">Today</span>
+                <h3>₹{todayExpenses.toLocaleString('en-IN')}</h3>
+                <p className="overview-card-text">Today's spending so far.</p>
+                <div className="overview-card-icon">☀️</div>
+              </div>
+              <div className="overview-card">
+                <span className="overview-card-label">Average spend</span>
+                <h3>₹{Math.round(averageExpense).toLocaleString('en-IN')}</h3>
+                <p className="overview-card-text">Per transaction average.</p>
+                <div className="overview-card-icon">📊</div>
+              </div>
+              <div className="overview-card">
+                <span className="overview-card-label">Total transactions</span>
+                <h3>{expenses.length}</h3>
+                <p className="overview-card-text">All recorded expenses.</p>
+                <div className="overview-card-icon">📝</div>
+              </div>
+            </section>
+
+            {/* Spending Trend Mini Chart */}
+            <section className="card spending-trend">
+              <div className="card-header">
+                <h3>Spending Trend</h3>
+                <span className="card-subtitle">Last 6 months</span>
+              </div>
+              <div className="mini-chart">
+                {Array.from({ length: 6 }, (_, i) => {
+                  const date = new Date();
+                  date.setMonth(date.getMonth() - (5 - i));
+                  const monthKey = date.toISOString().slice(0, 7);
+                  const monthSpend = expenses
+                    .filter(e => e.date?.startsWith(monthKey))
+                    .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+                  const maxSpend = Math.max(...Array.from({ length: 6 }, (_, j) => {
+                    const d = new Date();
+                    d.setMonth(d.getMonth() - (5 - j));
+                    const k = d.toISOString().slice(0, 7);
+                    return expenses.filter(e => e.date?.startsWith(k)).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+                  }));
+                  const height = maxSpend ? (monthSpend / maxSpend) * 100 : 0;
+
+                  return (
+                    <div key={i} className="mini-chart-bar">
+                      <div
+                        className="mini-chart-fill"
+                        style={{ height: `${height}%` }}
+                        title={`₹${monthSpend.toLocaleString('en-IN')}`}
+                      />
+                      <span className="mini-chart-label">
+                        {date.toLocaleString('default', { month: 'short' })}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* Recent Activity */}
+            <section className="card recent-activity">
+              <div className="card-header">
+                <h3>Recent Activity</h3>
+                <button
+                  className="view-all-btn"
+                  onClick={() => setActiveTab('transactions')}
+                >
+                  View All →
+                </button>
+              </div>
               {expenses.length === 0 ? (
-                <p className="empty-state">No expenses recorded yet.</p>
-              ) : (
-                <ul className="expense-list">
-                  {expenses.slice(0, 5).map((expense) => (
-                    <li key={expense._id} className="expense-item" onClick={() => navigate(`/transaction/${expense._id}`)} style={{ cursor: 'pointer' }}>
-                      <div className="expense-info">
-                        <div className="expense-row">
-                          <p className="expense-title">{expense.title}</p>
-                          {expense.date && <p className="expense-date">{expense.date}</p>}
-                        </div>
-                        <span className="expense-amount">₹{expense.amount}</span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {expenses.length > 5 && (
-                <div style={{ textAlign: 'center', marginTop: '16px' }}>
-                  <button className="primary-btn" onClick={() => setActiveTab('transactions')}>
-                    View All Transactions
+                <div className="empty-activity">
+                  <div className="empty-activity-icon">📊</div>
+                  <h4>No transactions yet</h4>
+                  <p>Start tracking your expenses to see activity here.</p>
+                  <button
+                    className="primary-btn"
+                    onClick={() => setActiveTab('transactions')}
+                  >
+                    Add Your First Expense
                   </button>
+                </div>
+              ) : (
+                <div className="activity-list">
+                  {expenses.slice(0, 8).map((expense, index) => (
+                    <div
+                      key={expense._id}
+                      className="activity-item"
+                      onClick={() => navigate(`/transaction/${expense._id}`)}
+                    >
+                      <div className="activity-icon">
+                        {index === 0 ? '🔥' : index === 1 ? '💰' : '💳'}
+                      </div>
+                      <div className="activity-content">
+                        <div className="activity-title">{expense.title}</div>
+                        <div className="activity-meta">
+                          {expense.date} • ₹{Number(expense.amount).toLocaleString('en-IN')}
+                        </div>
+                      </div>
+                      <div className="activity-arrow">→</div>
+                    </div>
+                  ))}
                 </div>
               )}
             </section>
@@ -173,6 +360,9 @@ const ExpenseTracker = () => {
               </svg>
             </button>
           </div>
+          <button className="sidebar-theme-btn" onClick={toggleTheme}>
+            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+          </button>
         </div>
       </aside>
 

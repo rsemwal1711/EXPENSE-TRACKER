@@ -1,6 +1,4 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
 import ExpenseTracker from './pages/ExpenseTracker';
 import Dashboard from './pages/Dashboard';
 import TransactionDetails from './pages/TransactionDetails';
@@ -44,14 +42,10 @@ const App = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/login" element={<Login />} />
         <Route path="/expense-tracker" element={<ExpenseTracker />} />
         <Route path="/transaction/:id" element={<TransactionDetails />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-
-
     </BrowserRouter>
   )
 }

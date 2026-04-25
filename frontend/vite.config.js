@@ -6,5 +6,9 @@ export default defineConfig({
   plugins: [react()],
   server: {
     historyApiFallback: true,
+    proxy: {
+      '/login': 'http://localhost:4000',
+      '/signup': 'http://localhost:4000',
+    },
   },
 })

@@ -3,10 +3,11 @@ import { signup, login, updateUser, changePassword, deleteUser } from "../contro
 
 const router = express.Router();
 
-router.post("/users", signup);
+// Authentication routes
+router.post("/signup", signup);
 router.post("/login", login);
-router.put("/users/:id", updateUser);
-router.put("/users/:id/password", changePassword);
-router.delete("/users/:id", deleteUser);
+router.put("/update/:id", updateUser);
+router.put("/change-password/:id", changePassword);
+router.delete("/delete/:id", deleteUser);
 
 export default router;

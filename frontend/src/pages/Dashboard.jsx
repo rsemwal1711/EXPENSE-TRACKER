@@ -40,27 +40,27 @@ const TESTIMONIALS = [
 
 const PLANS = [
   {
-  name: "Free", price: "0 XP", period: "to unlock",
-  features: ["Up to 50 transactions/month", "3 spending categories", "Basic charts", "1 savings goal"],
-  cta: "Get Started", highlight: false,
-},
-{
-  name: "Pro", price: "1,500 XP", period: "per month",
-  features: ["Unlimited transactions", "Unlimited categories", "Advanced analytics", "Unlimited goals", "Budget alerts", "CSV export", "Priority support"],
-  cta: "Unlock with XP", highlight: true,
-},
-{
-  name: "Family", price: "2,500 XP", period: "per month",
-  features: ["Everything in Pro", "Up to 5 members", "Shared expense tracking", "Family budget view", "Dedicated support"],
-  cta: "Unlock with XP", highlight: false,
-},
+    name: "Free", price: "0 XP", period: "to unlock",
+    features: ["Up to 50 transactions/month", "3 spending categories", "Basic charts", "1 savings goal"],
+    cta: "Get Started", highlight: false,
+  },
+  {
+    name: "Pro", price: "1,500 XP", period: "per month",
+    features: ["Unlimited transactions", "Unlimited categories", "Advanced analytics", "Unlimited goals", "Budget alerts", "CSV export", "Priority support"],
+    cta: "Unlock with XP", highlight: true,
+  },
+  {
+    name: "Family", price: "2,500 XP", period: "per month",
+    features: ["Everything in Pro", "Up to 5 members", "Shared expense tracking", "Family budget view", "Dedicated support"],
+    cta: "Unlock with XP", highlight: false,
+  },
 ];
 
 const STATS = [
   { value: "6", label: "Powerful features" },
-{ value: "3", label: "Flexible plans" },
-{ value: "100%", label: "Free to start" },
-{ value: "0", label: "Hidden charges" }
+  { value: "3", label: "Flexible plans" },
+  { value: "100%", label: "Free to start" },
+  { value: "0", label: "Hidden charges" }
 ];
 
 function Section({ children, className = "", id = "" }) {
@@ -132,7 +132,7 @@ export default function LandingPage() {
             className={`lp-btn lp-btn-primary lp-btn--lg ${hovered === "signup" ? "active" : ""}`}
             onMouseEnter={() => setHovered("signup")}
             onMouseLeave={() => setHovered(null)}
-            onClick={() => navigate("/signup")}
+            onClick={() => window.location.href = "/signup"}
           >
             <span>Start for Free</span>
             <span className="lp-btn-arrow">→</span>
@@ -141,7 +141,7 @@ export default function LandingPage() {
             className={`lp-btn lp-btn-ghost lp-btn--lg ${hovered === "login" ? "active" : ""}`}
             onMouseEnter={() => setHovered("login")}
             onMouseLeave={() => setHovered(null)}
-            onClick={() => navigate("/login")}
+            onClick={() => window.location.href = "/login"}
           >
             Sign In
           </button>
@@ -288,11 +288,11 @@ export default function LandingPage() {
           </h2>
           <p className="lp-cta-sub">Join 4+ people who took control of their finances with TrackMyCash. It's free to start.</p>
           <div className="lp-actions">
-            <button className="lp-btn lp-btn-primary lp-btn--lg" onClick={() => navigate("/signup")}>
+            <button className="lp-btn lp-btn-primary lp-btn--lg" onClick={() => window.location.href = "/signup"}>
               <span>Create Free Account</span>
               <span className="lp-btn-arrow">→</span>
             </button>
-            <button className="lp-btn lp-btn-ghost lp-btn--lg" onClick={() => navigate("/login")}>Sign In</button>
+            <button className="lp-btn lp-btn-ghost lp-btn--lg" onClick={() => window.location.href = "/login"}>Sign In</button>
           </div>
           <p className="lp-footnote">No credit card · Free forever plan · Cancel Pro anytime</p>
         </div>

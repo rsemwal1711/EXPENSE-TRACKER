@@ -29,9 +29,11 @@ const ExpenseTracker = () => {
   const navigate = useNavigate();
 
   const fetchExpenses = useCallback(async () => {
-    if (!user?._id) return;
+    const userId = user?._id || user?.id;
+  if (!userId) return;
     try {
-      const response = await fetch(`${API_BASE}/expenses/${user._id}`);
+      const response = await fetch(`${API_BASE}/expenses/${userId}`);
+      // const response = await fetch(`${API_BASE}/expenses/${user._id}`);
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
       setExpenses(data);

@@ -38,9 +38,10 @@ const Transactions = () => {
   }, []);
 
   const handleDelete = async (expenseId) => {
-    if (!user?._id) return;
+    const userId = user?._id || user?.id;
+    if (!userId) return;
     try {
-      await fetch(`${API_BASE}/expenses/${user._id}/${expenseId}`, { method: 'DELETE' });
+      await fetch(`${API_BASE}/expenses/${userId}/${expenseId}`, { method: 'DELETE' });
       setExpenses(expenses.filter(e => e._id !== expenseId));
     } catch (err) {
       alert('Error deleting expense');

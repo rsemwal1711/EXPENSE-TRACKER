@@ -935,6 +935,7 @@ body.light .expense-details strong {
 @media (max-width: 1024px) {
   .sidebar {
     width: 200px;
+    background: rgba(0, 0, 0, 0.6);
   }
 
   .dashboard {
@@ -1170,75 +1171,21 @@ body.light .expense-details strong {
 /* Small Mobile (max-width: 480px) */
 @media (max-width: 480px) {
   .sidebar {
-    height: 48px;
-  }
-
-  .sidebar-logo-icon {
-    font-size: 14px;
-  }
-
-  .dashboard {
-    margin-top: 48px;
-    padding-bottom: 50px;
-  }
-
-  .dashboard-header {
-    padding: 12px 12px;
-  }
-
-  .dashboard-title {
-    font-size: 16px;
-  }
-
-  .stats-card,
-  .card {
-    max-width: calc(100% - 20px);
-    margin: 10px 10px 0;
-    padding: 14px;
-  }
-
-  .stat-box {
-    padding: 12px 14px;
-  }
-
-  .stat-box h3 {
-    font-size: 20px;
-  }
-
-  .form-row input {
-    padding: 8px 10px;
-    font-size: 12px;
-  }
-
-  .primary-btn,
-  .cancel-btn {
-    padding: 8px 12px;
-    font-size: 12px;
-  }
-
-  .expense-item {
-    padding: 10px 12px;
-    gap: 6px;
-  }
-
-  .expense-title {
-    font-size: 12px;
-  }
-
-  .expense-amount {
-    font-size: 12px;
-  }
-
-  .expense-date {
-    font-size: 9px;
-  }
-
-  .edit-btn,
-  .delete-btn {
-    padding: 5px 8px;
-    font-size: 11px;
+    width: 250px;
+    height: 100vh;
+    background: #161616 !important;
+    border-right: 1px solid #2a2a2a;
+    left: -250px;
   }
 }
+  body.light .sidebar {
+    background: #ffffff !important;
+    border-right-color: #e0e0e0;
+  }
+
+  .app-shell.sidebar-open .sidebar {
+    left: 0;
+  }
 
 /* Desktop - Show sidebar nav and bottom */
 @media (min-width: 769px) {

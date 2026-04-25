@@ -4,181 +4,216 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign Up - TrackMyCash</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #0f0f0f;
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body { background: #080A0F; font-family: 'DM Sans', sans-serif; }
+
+    .lc-root {
       min-height: 100vh;
+      background: #080A0F;
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
+      font-family: 'DM Sans', sans-serif;
       position: relative;
-    }
-    .lc-root {
-      position: fixed;
-      inset: 0;
       overflow: hidden;
     }
     .lc-orb {
       position: absolute;
       border-radius: 50%;
-      filter: blur(80px);
-      opacity: 0.4;
+      filter: blur(100px);
+      pointer-events: none;
     }
     .lc-orb-1 {
-      width: 400px;
-      height: 400px;
-      background: #6366f1;
-      top: -100px;
-      left: -100px;
-      animation: float 8s ease-in-out infinite;
+      width: 480px; height: 480px;
+      background: radial-gradient(circle, rgba(232,197,71,0.10) 0%, transparent 70%);
+      top: -160px; left: -140px;
+      animation: driftA 16s ease-in-out infinite alternate;
     }
     .lc-orb-2 {
-      width: 300px;
-      height: 300px;
-      background: #ec4899;
-      bottom: -50px;
-      right: -50px;
-      animation: float 10s ease-in-out infinite reverse;
+      width: 380px; height: 380px;
+      background: radial-gradient(circle, rgba(255,107,53,0.09) 0%, transparent 70%);
+      bottom: -100px; right: -100px;
+      animation: driftB 20s ease-in-out infinite alternate;
     }
-    @keyframes float {
-      0%, 100% { transform: translate(0, 0); }
-      50% { transform: translate(30px, 20px); }
-    }
+    @keyframes driftA { from { transform: translate(0,0); } to { transform: translate(30px,20px); } }
+    @keyframes driftB { from { transform: translate(0,0); } to { transform: translate(-20px,-15px); } }
+
     .lc-grid {
       position: absolute;
       inset: 0;
-      background-image: 
-        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-      background-size: 50px 50px;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 20%, transparent 100%);
     }
     .login-container {
       position: relative;
-      z-index: 1;
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 24px;
-      padding: 48px 40px;
+      z-index: 10;
       width: 100%;
       max-width: 420px;
+      padding: 20px;
+      animation: cardIn 0.7s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(28px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .login-form {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 20px;
+      padding: 44px 40px 36px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(232,197,71,0.06) inset;
     }
     .lc-logo {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 32px;
+      gap: 8px;
       justify-content: center;
+      margin-bottom: 28px;
+      animation: fadeUp 0.5s ease 0.15s both;
     }
-    .lc-logo-mark {
-      font-size: 32px;
-      color: #6366f1;
-    }
+    .lc-logo-mark { font-size: 18px; color: #E8C547; }
     .lc-logo-text {
-      font-size: 24px;
-      font-weight: 700;
-      color: #fff;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      color: #EEF0F6;
     }
     .login-form h2 {
-      color: #fff;
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      font-weight: 900;
+      color: #EEF0F6;
       text-align: center;
-      font-size: 28px;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
+      animation: fadeUp 0.5s ease 0.25s both;
     }
     .lc-subtitle {
-      color: rgba(255,255,255,0.6);
       text-align: center;
+      font-size: 13px;
+      color: #6B6C7E;
       margin-bottom: 32px;
+      animation: fadeUp 0.5s ease 0.32s both;
     }
     .input-group {
       position: relative;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
+      animation: fadeUp 0.5s ease 0.4s both;
     }
     .input-group input {
       width: 100%;
-      padding: 16px 20px;
-      background: rgba(255,255,255,0.05);
+      padding: 18px 16px 6px;
+      background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 12px;
-      color: #fff;
-      font-size: 16px;
+      border-radius: 10px;
+      color: #EEF0F6;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14.5px;
       outline: none;
-      transition: all 0.3s;
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+      caret-color: #E8C547;
     }
     .input-group input:focus {
-      border-color: #6366f1;
-      background: rgba(255,255,255,0.08);
+      border-color: rgba(232,197,71,0.5);
+      background: rgba(232,197,71,0.04);
+      box-shadow: 0 0 0 3px rgba(232,197,71,0.08);
     }
     .input-group label {
       position: absolute;
-      left: 20px;
+      left: 16px;
       top: 50%;
       transform: translateY(-50%);
-      color: rgba(255,255,255,0.5);
-      font-size: 16px;
+      font-size: 14px;
+      color: #5A5C6E;
       pointer-events: none;
-      transition: all 0.3s;
+      transition: all 0.2s ease;
     }
-    .input-group input:focus + label,
-    .input-group input:not(:placeholder-shown) + label {
-      top: 0;
-      font-size: 12px;
-      background: #0f0f0f;
-      padding: 0 8px;
-      color: #6366f1;
+    .input-group input:focus ~ label,
+    .input-group input:not(:placeholder-shown) ~ label {
+      top: 10px;
+      transform: translateY(0);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #E8C547;
+      font-family: 'DM Mono', monospace;
     }
-    .login-form button {
-      width: 100%;
-      padding: 16px;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      border: none;
-      border-radius: 12px;
-      color: #fff;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    .login-form button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 30px rgba(99,102,241,0.3);
-    }
-    .login-form button:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-    }
-    .signup-text {
-      text-align: center;
-      margin-top: 24px;
-      color: rgba(255,255,255,0.6);
-    }
-    .signup-link {
-      color: #6366f1;
-      text-decoration: none;
-      margin-left: 8px;
-      font-weight: 500;
-    }
-    .signup-link:hover {
-      text-decoration: underline;
-    }
+
+    /* Password strength bars */
     .lc-strength {
       display: flex;
-      gap: 8px;
-      margin-bottom: 24px;
+      gap: 6px;
+      margin-top: -12px;
+      margin-bottom: 20px;
     }
     .lc-strength-seg {
       flex: 1;
-      height: 4px;
-      background: rgba(255,255,255,0.1);
+      height: 3px;
+      background: rgba(255,255,255,0.08);
       border-radius: 2px;
       transition: all 0.3s;
     }
     .lc-strength-seg.weak { background: #ef4444; }
     .lc-strength-seg.medium { background: #f59e0b; }
     .lc-strength-seg.strong { background: #22c55e; }
+
+    .login-form button[type="submit"] {
+      width: 100%;
+      padding: 14px;
+      background: #E8C547;
+      color: #080A0F;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      box-shadow: 0 0 28px rgba(232,197,71,0.25);
+      transition: all 0.22s ease;
+      margin-bottom: 24px;
+      animation: fadeUp 0.5s ease 0.6s both;
+    }
+    .login-form button[type="submit"]:hover {
+      background: #f5d253;
+      box-shadow: 0 0 44px rgba(232,197,71,0.4);
+      transform: translateY(-2px);
+    }
+    .login-form button[type="submit"]:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    .signup-text {
+      text-align: center;
+      font-size: 13px;
+      color: #5A5C6E;
+      animation: fadeUp 0.5s ease 0.72s both;
+    }
+    .signup-link {
+      color: #E8C547;
+      font-weight: 600;
+      text-decoration: none;
+      margin-left: 4px;
+      transition: color 0.18s;
+    }
+    .signup-link:hover { color: #f5d253; text-decoration: underline; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 480px) {
+      .login-form { padding: 24px 16px 20px; }
+      .login-form h2 { font-size: 24px; }
+    }
   </style>
 </head>
 <body>
@@ -186,46 +221,46 @@
     <div class="lc-orb lc-orb-1"></div>
     <div class="lc-orb lc-orb-2"></div>
     <div class="lc-grid"></div>
-  </div>
 
-  <div class="login-container">
-    <form class="login-form" id="signupForm">
-      <div class="lc-logo">
-        <span class="lc-logo-mark">⬡</span>
-        <span class="lc-logo-text">TrackMyCash</span>
-      </div>
+    <div class="login-container">
+      <form class="login-form" id="signupForm">
+        <div class="lc-logo">
+          <span class="lc-logo-mark">⬡</span>
+          <span class="lc-logo-text">TRACKMYCASH</span>
+        </div>
 
-      <h2>Create Account</h2>
-      <p class="lc-subtitle">Start tracking your finances today</p>
+        <h2>Create Account</h2>
+        <p class="lc-subtitle">Start tracking your finances today</p>
 
-      <div class="input-group">
-        <input type="text" name="name" id="name" placeholder=" " required>
-        <label for="name">Full Name</label>
-      </div>
+        <div class="input-group">
+          <input type="text" name="name" id="name" placeholder=" " required>
+          <label for="name">Full Name</label>
+        </div>
 
-      <div class="input-group">
-        <input type="email" name="email" id="email" placeholder=" " required>
-        <label for="email">Email</label>
-      </div>
+        <div class="input-group">
+          <input type="email" name="email" id="email" placeholder=" " required>
+          <label for="email">Email</label>
+        </div>
 
-      <div class="input-group">
-        <input type="password" name="password" id="password" placeholder=" " required>
-        <label for="password">Password</label>
-      </div>
+        <div class="input-group">
+          <input type="password" name="password" id="password" placeholder=" " required>
+          <label for="password">Password</label>
+        </div>
 
-      <div class="lc-strength" id="strength">
-        <div class="lc-strength-seg"></div>
-        <div class="lc-strength-seg"></div>
-        <div class="lc-strength-seg"></div>
-      </div>
+        <div class="lc-strength" id="strength">
+          <div class="lc-strength-seg"></div>
+          <div class="lc-strength-seg"></div>
+          <div class="lc-strength-seg"></div>
+        </div>
 
-      <button type="submit" id="submitBtn">Sign Up</button>
+        <button type="submit" id="submitBtn">Create Account</button>
 
-      <p class="signup-text">
-        Already have an account?
-        <a href="/login" class="signup-link">Login</a>
-      </p>
-    </form>
+        <p class="signup-text">
+          Already have an account?
+          <a href="/login" class="signup-link">Sign in</a>
+        </p>
+      </form>
+    </div>
   </div>
 
   <script>
@@ -245,9 +280,7 @@
       const strength = getStrength(e.target.value);
       strengthBars.forEach((bar, i) => {
         bar.className = 'lc-strength-seg';
-        if (i < strength) {
-          bar.classList.add(strengthLabels[strength]);
-        }
+        if (i < strength) bar.classList.add(strengthLabels[strength]);
       });
     });
 
@@ -264,7 +297,6 @@
       };
 
       try {
-        // const response = await fetch(API_BASE + '/users', {
         const response = await fetch(API_BASE + '/signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -284,7 +316,7 @@
         alert('Cannot connect to server');
       } finally {
         btn.disabled = false;
-        btn.textContent = 'Sign Up';
+        btn.textContent = 'Create Account';
       }
     });
   </script>

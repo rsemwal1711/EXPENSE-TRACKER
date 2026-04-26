@@ -222,6 +222,51 @@ body.light .transactions-summary .summary-total {
   color: #1a1a1a;
 }
 
+.summary-totals {
+  display: flex;
+  gap: 16px;
+}
+
+.summary-income {
+  color: #4ade80 !important;
+}
+
+.summary-expense {
+  color: #f87171 !important;
+}
+
+/* Type badge */
+.type-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.type-badge--income {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+}
+
+.type-badge--expense {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+}
+
+/* Amount styling */
+.amount-income {
+  color: #4ade80;
+  font-weight: 500;
+}
+
+.amount-expense {
+  color: #f87171;
+  font-weight: 500;
+}
+
 /* ── Table Card ── */
 .transactions-table-card {
   max-width: 820px;

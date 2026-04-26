@@ -5,6 +5,16 @@ const expenseSchema = new mongoose.Schema({
   title: { type: String, required: true },
   amount: { type: Number, required: true },
   date: { type: String, required: true },
+  type: {
+    type: String,
+    enum: ['expense', 'income'],
+    default: 'expense'
+  },
+  expenseType: {
+    type: String,
+    enum: ['grocery', 'electronics', 'food', 'transport', 'entertainment', 'utilities', 'healthcare', 'education', 'shopping', 'other'],
+    default: 'other'
+  },
 }, { timestamps: true });
 
 export default mongoose.model('Expense', expenseSchema);

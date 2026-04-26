@@ -12,8 +12,8 @@ const Transactions = () => {
   const [filterMonth, setFilterMonth] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [newExpense, setNewExpense] = useState({ title: '', amount: '', date: '' });
-  const [editExpense, setEditExpense] = useState({ title: '', amount: '', date: '' });
+  const [newExpense, setNewExpense] = useState({ title: '', amount: '', date: '', type: 'expense', expenseType: 'other' });
+  const [editExpense, setEditExpense] = useState({ title: '', amount: '', date: '', type: 'expense', expenseType: 'other' });
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const navigate = useNavigate();
 
@@ -114,7 +114,9 @@ const Transactions = () => {
       return 0;
     });
 
-  const total = filtered.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const totalIncome = filtered.filter(e => e.type === 'income').reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const totalExpense = filtered.filter(e => e.type !== 'income').reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const total = totalIncome - totalExpense;
 
   if (!user) return null;
 
@@ -140,6 +142,14 @@ const Transactions = () => {
         <section className="transactions-form-card">
           <form onSubmit={handleAdd} className="expense-form">
             <div className="form-row">
+              <select
+                value={newExpense.type}
+                onChange={(e) => setNewExpense({ ...newExpense, type: e.target.value })}
+                required
+              >
+                <option value="expense">Expense</option>
+                <option value="income">Income</option>
+              </select>
               <input
                 type="text"
                 placeholder="Transaction title"
@@ -162,6 +172,23 @@ const Transactions = () => {
                 onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
                 required
               />
+              {newExpense.type === 'expense' && (
+                <select
+                  value={newExpense.expenseType}
+                  onChange={(e) => setNewExpense({ ...newExpense, expenseType: e.target.value })}
+                >
+                  <option value="grocery">Grocery</option>
+                  <option value="electronics">Electronics</option>
+                  <option value="food">Food</option>
+                  <option value="transport">Transport</option>
+                  <option value="entertainment">Entertainment</option>
+                  <option value="utilities">Utilities</option>
+                  <option value="healthcare">Healthcare</option>
+                  <option value="education">Education</option>
+                  <option value="shopping">Shopping</option>
+                  <option value="other">Other</option>
+                </select>
+              )}
             </div>
             <div className="form-actions">
               <button type="submit" className="primary-btn">Add Transaction</button>
@@ -201,7 +228,11 @@ const Transactions = () => {
       {/* Summary */}
       <section className="transactions-summary">
         <span>Showing {filtered.length} transaction{filtered.length !== 1 ? 's' : ''}</span>
-        <span className="summary-total">Total: ₹{total.toLocaleString('en-IN')}</span>
+        <div className="summary-totals">
+          <span className="summary-income">Income: ₹{filtered.filter(e => e.type === 'income').reduce((sum, e) => sum + (Number(e.amount) || 0), 0).toLocaleString('en-IN')}</span>
+          <span className="summary-expense">Expenses: ₹{filtered.filter(e => e.type !== 'income').reduce((sum, e) => sum + (Number(e.amount) || 0), 0).toLocaleString('en-IN')}</span>
+          <span className="summary-total">Balance: ₹{total.toLocaleString('en-IN')}</span>
+        </div>
       </section>
 
       {/* Table */}
@@ -213,7 +244,9 @@ const Transactions = () => {
             <thead>
               <tr>
                 <th>#</th>
+                <th>Type</th>
                 <th>Title</th>
+                <th>Category</th>
                 <th>Date</th>
                 <th>Amount</th>
                 <th>Actions</th>
@@ -263,9 +296,17 @@ const Transactions = () => {
                     // Normal display row
                     <>
                       <td data-label="#">{index + 1}</td>
+                      <td data-label="Type">
+                        <span className={`type-badge type-badge--${expense.type || 'expense'}`}>
+                          {expense.type === 'income' ? 'Income' : 'Expense'}
+                        </span>
+                      </td>
                       <td data-label="Title">{expense.title}</td>
+                      <td data-label="Category">{expense.expenseType || 'Other'}</td>
                       <td data-label="Date">{expense.date}</td>
-                      <td data-label="Amount">₹{Number(expense.amount).toLocaleString('en-IN')}</td>
+                      <td data-label="Amount" className={expense.type === 'income' ? 'amount-income' : 'amount-expense'}>
+                        {expense.type === 'income' ? '+' : '-'}₹{Number(expense.amount).toLocaleString('en-IN')}
+                      </td>
                       <td data-label="Actions">
                         <button className="edit-btn" onClick={(e) => { e.stopPropagation(); startEdit(expense); }}>Edit</button>
                         <button className="delete-btn" onClick={(e) => { e.stopPropagation(); setDeleteConfirm(expense._id); }}>Delete</button>

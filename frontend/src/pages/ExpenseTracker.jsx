@@ -30,7 +30,7 @@ const ExpenseTracker = () => {
 
   const fetchExpenses = useCallback(async () => {
     const userId = user?._id || user?.id;
-  if (!userId) return;
+    if (!userId) return;
     try {
       const response = await fetch(`${API_BASE}/expenses/${userId}`);
       // const response = await fetch(`${API_BASE}/expenses/${user._id}`);
@@ -90,37 +90,53 @@ const ExpenseTracker = () => {
   const handleLogout = () => {
     localStorage.removeItem('user');
     setSidebarOpen(false);
-    navigate('/login');
+    // navigate('/login');
+    window.location.href = '/login';
   };
 
-  const total = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const totalIncome = expenses.filter(e => e.type === 'income').reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const totalExpense = expenses.filter(e => e.type !== 'income').reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const total = totalIncome - totalExpense;
   const currentMonth = new Date().toISOString().slice(0, 7);
-  const monthTotal = expenses
-    .filter(e => e.date?.startsWith(currentMonth))
-    .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
-  const averageExpense = expenses.length ? total / expenses.length : 0;
+  const monthIncome = expenses.filter(e => e.type === 'income' && e.date?.startsWith(currentMonth)).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const monthExpense = expenses.filter(e => e.type !== 'income' && e.date?.startsWith(currentMonth)).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const monthTotal = monthIncome - monthExpense;
+  const averageExpense = expenses.length ? totalExpense / expenses.length : 0;
 
   // Calculate additional stats
   const lastMonth = new Date();
   lastMonth.setMonth(lastMonth.getMonth() - 1);
   const lastMonthKey = lastMonth.toISOString().slice(0, 7);
-  const lastMonthTotal = expenses
-    .filter(e => e.date?.startsWith(lastMonthKey))
-    .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
-  const monthChange = lastMonthTotal ? ((monthTotal - lastMonthTotal) / lastMonthTotal * 100) : 0;
+  const lastMonthIncome = expenses.filter(e => e.type === 'income' && e.date?.startsWith(lastMonthKey)).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const lastMonthExpense = expenses.filter(e => e.type !== 'income' && e.date?.startsWith(lastMonthKey)).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const lastMonthTotal = lastMonthIncome - lastMonthExpense;
+  const monthChange = lastMonthTotal ? ((monthTotal - lastMonthTotal) / Math.abs(lastMonthTotal) * 100) : 0;
 
+  const todayIncome = expenses
+    .filter(e => e.type === 'income' && e.date === new Date().toISOString().split('T')[0])
+    .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
   const todayExpenses = expenses
-    .filter(e => e.date === new Date().toISOString().split('T')[0])
+    .filter(e => e.type !== 'income' && e.date === new Date().toISOString().split('T')[0])
     .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const todayTotal = todayIncome - todayExpenses;
 
+  const weeklyIncome = expenses
+    .filter(e => {
+      const expenseDate = new Date(e.date);
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return e.type === 'income' && expenseDate >= weekAgo;
+    })
+    .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
   const weeklyExpenses = expenses
     .filter(e => {
       const expenseDate = new Date(e.date);
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
-      return expenseDate >= weekAgo;
+      return e.type !== 'income' && expenseDate >= weekAgo;
     })
     .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const weeklyTotal = weeklyIncome - weeklyExpenses;
 
   if (!user) return null;
 
@@ -192,11 +208,27 @@ const ExpenseTracker = () => {
             <section className="overview-cards">
               <div className="overview-card overview-card--large">
                 <div>
-                  <span className="overview-card-label">Total expenses</span>
+                  <span className="overview-card-label">Balance</span>
                   <h3>₹{total.toLocaleString('en-IN')}</h3>
-                  <p className="overview-card-text">All transactions recorded so far.</p>
+                  <p className="overview-card-text">Income - Expenses</p>
                 </div>
                 <div className="overview-card-icon">💰</div>
+              </div>
+              <div className="overview-card">
+                <div>
+                  <span className="overview-card-label">Total Income</span>
+                  <h3>₹{totalIncome.toLocaleString('en-IN')}</h3>
+                  <p className="overview-card-text">All income recorded.</p>
+                </div>
+                <div className="overview-card-icon">💵</div>
+              </div>
+              <div className="overview-card">
+                <div>
+                  <span className="overview-card-label">Total Expenses</span>
+                  <h3>₹{totalExpense.toLocaleString('en-IN')}</h3>
+                  <p className="overview-card-text">All expenses recorded.</p>
+                </div>
+                <div className="overview-card-icon">💸</div>
               </div>
               <div className="overview-card">
                 <span className="overview-card-label">This month</span>
@@ -208,14 +240,14 @@ const ExpenseTracker = () => {
               </div>
               <div className="overview-card">
                 <span className="overview-card-label">This week</span>
-                <h3>₹{weeklyExpenses.toLocaleString('en-IN')}</h3>
-                <p className="overview-card-text">Expenses in the last 7 days.</p>
+                <h3>₹{weeklyTotal.toLocaleString('en-IN')}</h3>
+                <p className="overview-card-text">Net this week (income - expenses).</p>
                 <div className="overview-card-icon">📈</div>
               </div>
               <div className="overview-card">
                 <span className="overview-card-label">Today</span>
-                <h3>₹{todayExpenses.toLocaleString('en-IN')}</h3>
-                <p className="overview-card-text">Today's spending so far.</p>
+                <h3>₹{todayTotal.toLocaleString('en-IN')}</h3>
+                <p className="overview-card-text">Today's net balance.</p>
                 <div className="overview-card-icon">☀️</div>
               </div>
               <div className="overview-card">
@@ -243,22 +275,24 @@ const ExpenseTracker = () => {
                   const date = new Date();
                   date.setMonth(date.getMonth() - (5 - i));
                   const monthKey = date.toISOString().slice(0, 7);
-                  const monthSpend = expenses
-                    .filter(e => e.date?.startsWith(monthKey))
-                    .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+                  const monthIncome = expenses.filter(e => e.type === 'income' && e.date?.startsWith(monthKey)).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+                  const monthExpense = expenses.filter(e => e.type !== 'income' && e.date?.startsWith(monthKey)).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+                  const monthSpend = monthIncome - monthExpense;
                   const maxSpend = Math.max(...Array.from({ length: 6 }, (_, j) => {
                     const d = new Date();
                     d.setMonth(d.getMonth() - (5 - j));
                     const k = d.toISOString().slice(0, 7);
-                    return expenses.filter(e => e.date?.startsWith(k)).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+                    const mIncome = expenses.filter(e => e.type === 'income' && e.date?.startsWith(k)).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+                    const mExpense = expenses.filter(e => e.type !== 'income' && e.date?.startsWith(k)).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+                    return mIncome - mExpense;
                   }));
-                  const height = maxSpend ? (monthSpend / maxSpend) * 100 : 0;
+                  const height = maxSpend ? (Math.abs(monthSpend) / Math.abs(maxSpend)) * 100 : 0;
 
                   return (
                     <div key={i} className="mini-chart-bar">
                       <div
                         className="mini-chart-fill"
-                        style={{ height: `${height}%` }}
+                        style={{ height: `${height}%`, background: monthSpend >= 0 ? '#4ade80' : '#f87171' }}
                         title={`₹${monthSpend.toLocaleString('en-IN')}`}
                       />
                       <span className="mini-chart-label">

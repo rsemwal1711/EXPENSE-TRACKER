@@ -236,6 +236,7 @@ const userSchema = new mongoose.Schema({
   googleId: String,
   provider: { type: String, default: 'local' },
   profilePicture: String,
+  xp: { type: Number, default: 0 },
   expenses: {
     type: Array,
     default: []
@@ -267,6 +268,7 @@ export const signup = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      xp: 10,
       expenses: []
     });
 
@@ -276,12 +278,14 @@ export const signup = async (req, res) => {
 
     res.status(201).json({
       message: "Signup successful",
-      user: { 
+      user: {
         _id: newUser._id,  // ✅ fixed
         id: newUser._id,   // ✅ kept for compatibility
-        name: newUser.name, 
-        email: newUser.email 
+        name: newUser.name,
+        email: newUser.email,
+        xp: newUser.xp
       },
+      xpEarned: 10,
       token
     });
 
@@ -315,23 +319,29 @@ export const login = async (req, res) => {
     if (!isPasswordValid)
       return res.status(401).json({ message: "Invalid email or password" });
 
+    // Add 10 XP on login
+    user.xp = (user.xp || 0) + 10;
+    await user.save();
+
     const token = generateToken(user);
 
-    req.session.user = { 
-      _id: user._id, 
-      id: user._id, 
-      name: user.name, 
-      email: user.email 
+    req.session.user = {
+      _id: user._id,
+      id: user._id,
+      name: user.name,
+      email: user.email
     };
 
     res.json({
       message: "Login successful",
-      user: { 
+      user: {
         _id: user._id,  // ✅ fixed
         id: user._id,   // ✅ kept for compatibility
-        name: user.name, 
-        email: user.email 
+        name: user.name,
+        email: user.email,
+        xp: user.xp
       },
+      xpEarned: 10,
       token
     });
 
@@ -372,8 +382,8 @@ export const updateUser = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.json({ 
-      message: "Profile updated successfully", 
+    res.json({
+      message: "Profile updated successfully",
       user: {
         _id: updatedUser._id,  // ✅ fixed
         id: updatedUser._id,

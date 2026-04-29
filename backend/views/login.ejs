@@ -210,6 +210,39 @@
       .login-form { padding: 24px 16px 20px; }
       .login-form h2 { font-size: 24px; }
     }
+
+    /* XP Popup Styles */
+    .xp-popup {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: linear-gradient(135deg, #E8C547 0%, #f5d253 100%);
+      color: #080A0F;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      box-shadow: 0 8px 32px rgba(232,197,71,0.4);
+      z-index: 1000;
+      opacity: 0;
+      transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    .xp-popup.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+    .xp-popup .xp-amount {
+      font-size: 22px;
+      font-weight: 900;
+    }
+    .xp-popup .xp-total {
+      font-size: 12px;
+      font-weight: 500;
+      opacity: 0.8;
+      margin-top: 2px;
+    }
   </style>
 </head>
 <body>
@@ -217,6 +250,12 @@
     <div class="lc-orb lc-orb-1"></div>
     <div class="lc-orb lc-orb-2"></div>
     <div class="lc-grid"></div>
+
+    <!-- XP Popup -->
+    <div class="xp-popup" id="xpPopup">
+      <div class="xp-amount">+10 XP</div>
+      <div class="xp-total" id="xpTotal">Total: 0 XP</div>
+    </div>
 
     <div class="login-container">
       <form class="login-form" id="loginForm">
@@ -251,8 +290,23 @@
   </div>
 
   <script>
-    // const API_BASE = '<%= process.env.API_BASE || "http://localhost:4000/users" %>';
-    const API_BASE = '<%= process.env.API_BASE || "https://expense-tracker-backend-1ttg.onrender.com" %>';
+    const API_BASE = '<%= process.env.API_BASE || "http://localhost:4000/users" %>';
+    // const API_BASE = '<%= process.env.API_BASE || "https://expense-tracker-backend-1ttg.onrender.com" %>';
+
+    // XP Popup function
+    function showXPPopup(xpEarned, totalXP) {
+      const popup = document.getElementById('xpPopup');
+      const totalEl = document.getElementById('xpTotal');
+      
+      popup.querySelector('.xp-amount').textContent = '+' + xpEarned + ' XP';
+      totalEl.textContent = 'Total: ' + totalXP + ' XP';
+      
+      popup.classList.add('show');
+      
+      setTimeout(() => {
+        popup.classList.remove('show');
+      }, 2500);
+    }
 
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -276,7 +330,17 @@
 
         if (response.ok) {
           localStorage.setItem('user', JSON.stringify(data.user));
-          window.location.href = '/expense-tracker';
+          
+          // Show XP popup if XP was earned
+          if (data.xpEarned) {
+            showXPPopup(data.xpEarned, data.user.xp);
+            // Delay redirect to show popup
+            setTimeout(() => {
+              window.location.href = '/expense-tracker';
+            }, 2000);
+          } else {
+            window.location.href = '/expense-tracker';
+          }
         } else {
           alert(data.message || 'Login failed');
         }

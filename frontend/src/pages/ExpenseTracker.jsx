@@ -4,6 +4,7 @@ import './ExpenseTracker.css';
 import Transactions from './Transactions';
 import Goals from './Goals';
 import Analytics from './Analytics';
+import ExpenseAnalytics from './ExpenseAnalytics';
 import Settings from './Settings';
 
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000' : 'https://expense-tracker-backend-1ttg.onrender.com');
@@ -144,7 +145,8 @@ const ExpenseTracker = () => {
     { id: 'overview', icon: '◈', label: 'Overview' },
     { id: 'transactions', icon: '⇄', label: 'Transactions' },
     { id: 'goals', icon: '◎', label: 'Goals' },
-    { id: 'analytics', icon: '⌇', label: 'Analytics' },
+    // { id: 'analytics', icon: '⌇', label: 'Analytics' },
+    { id: 'expenseAnalytics', icon: '⌇', label: 'Expense Analytics' },
     { id: 'settings', icon: '⚙', label: 'Settings' },
   ];
 
@@ -152,7 +154,7 @@ const ExpenseTracker = () => {
     overview: 'Overview',
     transactions: 'Transactions',
     goals: 'Goals',
-    analytics: 'Analytics',
+    expenseAnalytics: 'Expense Analytics',
     settings: 'Settings',
   };
 
@@ -162,8 +164,10 @@ const ExpenseTracker = () => {
         return <Transactions />;
       case 'goals':
         return <Goals />;
-      case 'analytics':
-        return <Analytics />;
+      // case 'analytics':
+      //   return <Analytics />;
+      case 'expenseAnalytics':
+        return <ExpenseAnalytics />;
       case 'settings':
         return <Settings />;
       default:

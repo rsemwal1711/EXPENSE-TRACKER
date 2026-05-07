@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+// const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+const API_BASE = 'https://expense-tracker-backend-1ttg.onrender.com';
 
 export function useExpenseSummary(userId) {
   const [data, setData] = useState({ monthly: [], byCategory: [] });

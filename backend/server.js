@@ -14,6 +14,14 @@ import expenseRoutes from "./routes/expenseRoutes.js";
 
 const app = express();
 
+// CORS — must be before routes
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://expense-tracker-frontend-8171.onrender.com'],
+  credentials: true
+}));
+
+app.options('*', cors());
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -36,11 +44,6 @@ app.use(session({
   }
 }));
 
-// CORS — must be before routes
-app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://expense-tracker-frontend-8171.onrender.com'],
-  credentials: true
-}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

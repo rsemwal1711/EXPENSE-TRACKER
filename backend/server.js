@@ -46,12 +46,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // EJS view engine
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+// app.set('view engine', 'ejs');
+// app.set('views', path.join(__dirname, 'views'));
 
 // EJS page routes
-app.get('/login', (req, res) => res.render('login'));
-app.get('/signup', (req, res) => res.render('signup'));
+// app.get('/login', (req, res) => res.render('login'));
+// app.get('/signup', (req, res) => res.render('signup'));
 
 // ✅ API routes FIRST
 app.use('/users', authRoutes);

@@ -1,14 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
   server: {
-    historyApiFallback: true,
     proxy: {
-      '/login': 'http://localhost:4000',
-      '/signup': 'http://localhost:4000',
-    },
-  },
+      '/users':    'http://localhost:4000',
+      '/expenses': 'http://localhost:4000',
+    }
+  }
 })

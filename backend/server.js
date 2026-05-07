@@ -20,7 +20,7 @@ app.use(cors({
   credentials: true
 }));
 
-app.options('*', cors());
+// app.options('*', cors());
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

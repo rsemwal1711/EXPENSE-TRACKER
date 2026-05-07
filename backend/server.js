@@ -22,20 +22,23 @@ const __dirname = path.dirname(__filename);
 app.use(cookieParser());
 
 // Session
+app.set('trust proxy', 1);
+
 app.use(session({
-  secret: process.env.SESSION_SECRET || "expense-tracker-secret-key-2024",
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false,
+    secure: process.env.NODE_ENV === "production",
     httpOnly: true,
+    sameSite: "none",
     maxAge: 24 * 60 * 60 * 1000
   }
 }));
 
 // CORS — must be before routes
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://expense-tracker-frontend-8171.onrender.com'],
   credentials: true
 }));
 

@@ -30,18 +30,27 @@ const ExpenseTracker = () => {
   const navigate = useNavigate();
 
   const fetchExpenses = useCallback(async () => {
-    const userId = user?._id || user?.id;
-    if (!userId) return;
-    try {
-      const response = await fetch(`${API_BASE}/expenses/${userId}`);
-      // const response = await fetch(`${API_BASE}/expenses/${user._id}`);
-      if (!response.ok) throw new Error('Failed to fetch');
-      const data = await response.json();
-      setExpenses(data);
-    } catch (err) {
-      console.error("Fetch error:", err);
-    }
-  }, [user?._id]);
+  const userId = user?._id || user?.id;
+  if (!userId) return;
+
+  // Retrieve token from localStorage
+  const token = localStorage.getItem('token');
+
+  try {
+    const response = await fetch(`${API_BASE}/expenses/${userId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
+    const data = await response.json();
+    setExpenses(data);
+  } catch (err) {
+    console.error("Fetch error:", err);
+  }
+}, [user?._id]);
 
   useEffect(() => {
     if (!user) {
@@ -147,6 +156,7 @@ const ExpenseTracker = () => {
     { id: 'goals', icon: '◎', label: 'Goals' },
     // { id: 'analytics', icon: '⌇', label: 'Analytics' },
     { id: 'expenseAnalytics', icon: '⌇', label: 'Expense Analytics' },
+    { id: 'charts', icon: '⌇', label: 'Charts' },
     { id: 'settings', icon: '⚙', label: 'Settings' },
   ];
 
@@ -155,6 +165,7 @@ const ExpenseTracker = () => {
     transactions: 'Transactions',
     goals: 'Goals',
     expenseAnalytics: 'Expense Analytics',
+    expense: 'Charts',
     settings: 'Settings',
   };
 
@@ -168,6 +179,8 @@ const ExpenseTracker = () => {
       //   return <Analytics />;
       case 'expenseAnalytics':
         return <ExpenseAnalytics />;
+      case 'charts':
+        return <Analytics />
       case 'settings':
         return <Settings />;
       default:
@@ -184,13 +197,13 @@ const ExpenseTracker = () => {
                   <span className="quick-action-icon">➕</span>
                   <span>Add Expense</span>
                 </button>
-                <button
+                {/* <button
                   className="quick-action-btn"
                   onClick={() => setActiveTab('analytics')}
                 >
                   <span className="quick-action-icon">📊</span>
                   <span>View Analytics</span>
-                </button>
+                </button> */}
                 <button
                   className="quick-action-btn"
                   onClick={() => setActiveTab('goals')}

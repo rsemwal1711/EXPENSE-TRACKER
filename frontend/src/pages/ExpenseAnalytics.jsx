@@ -4,7 +4,6 @@ import './ExpenseAnalytics.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000' : 'https://expense-tracker-backend-1ttg.onrender.com');
 
-const REQUIRED_XP = 500;
 const PIE_COLORS = [
   '#f59e0b', '#10b981', '#3b82f6', '#ef4444',
   '#8b5cf6', '#ec4899', '#14b8a6', '#f97316',
@@ -27,6 +26,9 @@ const ExpenseAnalytics = () => {
   const [expenses, setExpenses] = useState([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [hoveredSlice, setHoveredSlice] = useState(null);
+  const [pieFilterType, setPieFilterType] = useState('all'); // 'all' | 'year' | 'month'
+  const [pieYear, setPieYear] = useState(new Date().getFullYear().toString());
+  const [pieMonth, setPieMonth] = useState(String(new Date().getMonth() + 1).padStart(2, '0'));
   const navigate = useNavigate();
 
   const [user] = useState(() => {
@@ -34,14 +36,15 @@ const ExpenseAnalytics = () => {
     return raw ? JSON.parse(raw) : null;
   });
 
-  const userXP = user?.xp || 0;
-  const isLocked = userXP < REQUIRED_XP;
   const userId = user?._id || user?.id;
 
   const fetchExpenses = useCallback(async () => {
     if (!userId) return;
+    const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`${API_BASE}/expenses/${userId}`);
+      const res = await fetch(`${API_BASE}/expenses/${userId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!res.ok) throw new Error('Failed to fetch');
       setExpenses(await res.json());
     } catch (err) {
@@ -56,46 +59,6 @@ const ExpenseAnalytics = () => {
 
   if (!user) return null;
 
-  if (isLocked) {
-    const progress = Math.min((userXP / REQUIRED_XP) * 100, 100);
-    return (
-      <div className="ea-wrapper">
-        <div className="ea-locked-card">
-          <div className="ea-locked-orb">
-            <span className="ea-lock-icon">🔒</span>
-            <div className="ea-orb-ring ea-orb-ring--1" />
-            <div className="ea-orb-ring ea-orb-ring--2" />
-            <div className="ea-orb-ring ea-orb-ring--3" />
-          </div>
-          <h2 className="ea-locked-title">Feature Locked</h2>
-          <p className="ea-locked-sub">
-            Earn <strong>{REQUIRED_XP} XP</strong> to unlock Expense Analytics
-          </p>
-          <div className="ea-xp-track">
-            <div className="ea-xp-bar">
-              <div className="ea-xp-fill" style={{ width: `${progress}%` }} />
-              <div className="ea-xp-glow" style={{ left: `${progress}%` }} />
-            </div>
-            <div className="ea-xp-labels">
-              <span className="ea-xp-current">{userXP} XP</span>
-              <span className="ea-xp-needed">{REQUIRED_XP - userXP} XP to go</span>
-            </div>
-          </div>
-          <div className="ea-perks">
-            <p className="ea-perks-title">What unlocks at {REQUIRED_XP} XP</p>
-            <ul className="ea-perks-list">
-              <li><span className="ea-perk-icon">📊</span> Detailed category breakdown</li>
-              <li><span className="ea-perk-icon">📈</span> Monthly spending trends</li>
-              <li><span className="ea-perk-icon">💡</span> Spending insights &amp; tips</li>
-              <li><span className="ea-perk-icon">🎯</span> Budget optimisation</li>
-            </ul>
-          </div>
-          <p className="ea-hint">Add expenses, hit goals, and stay consistent to earn XP.</p>
-        </div>
-      </div>
-    );
-  }
-
   // ── Data prep ──────────────────────────────────────────────────────────────
 
   const onlyExpenses = expenses.filter(e => e.type !== 'income');
@@ -103,7 +66,7 @@ const ExpenseAnalytics = () => {
   const monthlyData = Array.from({ length: 12 }, (_, i) => {
     const month = String(i + 1).padStart(2, '0');
     const key = `${selectedYear}-${month}`;
-    const slice = expenses.filter(e => e.date?.startsWith(key));
+    const slice = onlyExpenses.filter(e => e.date?.startsWith(key));
     const total = slice.reduce((s, e) => s + (Number(e.amount) || 0), 0);
     return {
       month: new Date(2000, i).toLocaleString('default', { month: 'short' }),
@@ -124,7 +87,13 @@ const ExpenseAnalytics = () => {
   const years = [...new Set(expenses.map(e => e.date?.split('-')[0]).filter(Boolean))].sort().reverse();
   if (!years.includes(new Date().getFullYear().toString())) years.unshift(new Date().getFullYear().toString());
 
-  const categoryData = onlyExpenses.reduce((acc, e) => {
+  const pieFilteredExpenses = onlyExpenses.filter(e => {
+    if (pieFilterType === 'year') return e.date?.startsWith(pieYear);
+    if (pieFilterType === 'month') return e.date?.startsWith(`${pieYear}-${pieMonth}`);
+    return true;
+  });
+
+  const categoryData = pieFilteredExpenses.reduce((acc, e) => {
     const cat = e.expenseType || e.category;
     if (!cat || cat === 'Other') return acc;
     acc[cat] = (acc[cat] || 0) + Number(e.amount);
@@ -135,9 +104,11 @@ const ExpenseAnalytics = () => {
     .map(([name, total]) => ({ name, total }))
     .sort((a, b) => b.total - a.total);
 
+  const pieTotalExpense = pieFilteredExpenses.reduce((s, e) => s + (Number(e.amount) || 0), 0);
+
   let cumDeg = 0;
   const pieSegments = categoryList.map((cat, i) => {
-    const pct = totalExpenseOnly > 0 ? (cat.total / totalExpenseOnly) * 100 : 0;
+    const pct = pieTotalExpense > 0 ? (cat.total / pieTotalExpense) * 100 : 0;
     const startDeg = cumDeg;
     cumDeg += (pct / 100) * 360;
     return {
@@ -155,9 +126,9 @@ const ExpenseAnalytics = () => {
     : 'Total';
   const centerValue = hoveredSlice !== null
     ? `${pieSegments[hoveredSlice].pct}%`
-    : totalExpenseOnly >= 1000
-      ? `₹${(totalExpenseOnly / 1000).toFixed(1)}k`
-      : `₹${totalExpenseOnly}`;
+    : pieTotalExpense >= 1000
+      ? `₹${(pieTotalExpense / 1000).toFixed(1)}k`
+      : `₹${pieTotalExpense}`;
 
   return (
     <div className="ea-wrapper">
@@ -168,7 +139,6 @@ const ExpenseAnalytics = () => {
           <h2 className="ea-title">Expense Analytics</h2>
           <p className="ea-subtitle">Advanced insights for your spending patterns</p>
         </div>
-        <div className="ea-unlocked-badge">🔓 Unlocked · {userXP} XP</div>
       </section>
 
       {/* Stats */}
@@ -239,7 +209,30 @@ const ExpenseAnalytics = () => {
 
       {/* Pie / Donut chart */}
       <section className="ea-card">
-        <div className="ea-card-header"><h3>Spending by Category</h3></div>
+        <div className="ea-card-header">
+          <h3>Spending by Category</h3>
+          <div className="ea-pie-filters">
+            <select className="ea-select" value={pieFilterType} onChange={e => setPieFilterType(e.target.value)}>
+              <option value="all">All Time</option>
+              <option value="year">By Year</option>
+              <option value="month">By Month</option>
+            </select>
+            {(pieFilterType === 'year' || pieFilterType === 'month') && (
+              <select className="ea-select" value={pieYear} onChange={e => setPieYear(e.target.value)}>
+                {years.map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
+            )}
+            {pieFilterType === 'month' && (
+              <select className="ea-select" value={pieMonth} onChange={e => setPieMonth(e.target.value)}>
+                {Array.from({ length: 12 }, (_, i) => {
+                  const val = String(i + 1).padStart(2, '0');
+                  const label = new Date(2000, i).toLocaleString('default', { month: 'short' });
+                  return <option key={val} value={val}>{label}</option>;
+                })}
+              </select>
+            )}
+          </div>
+        </div>
         {pieSegments.length === 0 ? (
           <p className="ea-empty">No data to display.</p>
         ) : (

@@ -94,26 +94,6 @@ export default function LandingPage() {
           <a href="#how-it-works" className="lp-nav-link">How it Works</a>
           <a href="#pricing" className="lp-nav-link">Pricing</a>
         </div>
-        <div className="lp-nav-actions">
-          <button className="lp-theme-toggle" onClick={() => setDark(!dark)} aria-label="Toggle theme">
-            <div className={`lp-toggle-track ${dark ? "is-dark" : "is-light"}`}>
-              <div className="lp-toggle-thumb">
-                {dark ? (
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                    <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" fill="currentColor" />
-                  </svg>
-                ) : (
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="4" fill="currentColor" />
-                    <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                )}
-              </div>
-            </div>
-          </button>
-          {/* <button className="lp-btn lp-btn-ghost lp-btn--sm" onClick={() => navigate("/login")}>Sign In</button>
-          <button className="lp-btn lp-btn-primary lp-btn--sm" onClick={() => navigate("/signup")}>Get Started →</button> */}
-        </div>
       </nav>
 
       {/* ── 1. HERO ── */}

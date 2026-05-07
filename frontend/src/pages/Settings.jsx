@@ -42,8 +42,11 @@ const Settings = () => {
   useEffect(() => {
     const fetchExpenses = async () => {
       if (!user?._id) return;
+      const token = localStorage.getItem('token');
       try {
-        const response = await fetch(`${API_BASE}/expenses/${user._id}`);
+        const response = await fetch(`${API_BASE}/expenses/${user._id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         if (!response.ok) throw new Error('Failed to fetch expenses');
         const data = await response.json();
         setExpenses(data);
@@ -85,10 +88,14 @@ const Settings = () => {
 
   const handleUpdateProfile = async () => {
     if (!name.trim()) return setProfileMsg('Name cannot be empty.');
+    const token = localStorage.getItem('token');
     try {
       const response = await fetch(`${API_BASE}/users/${user._id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ name, email }),
       });
       if (!response.ok) throw new Error('Update failed');
@@ -110,10 +117,14 @@ const Settings = () => {
       return setPasswordMsg('New passwords do not match.');
     if (newPassword.length < 6)
       return setPasswordMsg('Password must be at least 6 characters.');
+    const token = localStorage.getItem('token');
     try {
       const response = await fetch(`${API_BASE}/users/${user._id}/password`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ currentPassword, newPassword }),
       });
       if (!response.ok) {
@@ -128,9 +139,14 @@ const Settings = () => {
   };
 
   const handleDeleteAccount = async () => {
+    const token = localStorage.getItem('token');
     try {
-      await fetch(`${API_BASE}/users/${user._id}`, { method: 'DELETE' });
+      await fetch(`${API_BASE}/users/${user._id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       localStorage.removeItem('user');
+      localStorage.removeItem('token');
       localStorage.removeItem('goals');
       navigate('/login');
     } catch (err) {

@@ -17,9 +17,12 @@ const TransactionDetails = () => {
 
   const fetchExpense = async () => {
     if (!user?._id || !id) return;
+    const token = localStorage.getItem('token');
 
     try {
-      const response = await fetch(`${API_BASE}/expenses/${user._id}/${id}`);
+      const response = await fetch(`${API_BASE}/expenses/${user._id}/${id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
       setExpense(data);
@@ -36,11 +39,15 @@ const TransactionDetails = () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     if (!user?._id || !editData.title || !editData.amount || !editData.date) return;
+    const token = localStorage.getItem('token');
 
     try {
       const response = await fetch(`${API_BASE}/expenses/${user._id}/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(editData)
       });
       if (!response.ok) throw new Error('Failed to update');
@@ -48,19 +55,23 @@ const TransactionDetails = () => {
       setExpense(updatedExpense);
       setEditing(false);
     } catch (err) {
-      alert('Error updating transaction');
+      alert('Error updating transaction', err);
     }
   };
 
   const handleDelete = async () => {
     if (!user?._id) return;
     if (!confirm('Are you sure you want to delete this transaction?')) return;
+    const token = localStorage.getItem('token');
 
     try {
-      await fetch(`${API_BASE}/expenses/${user._id}/${id}`, { method: 'DELETE' });
+      await fetch(`${API_BASE}/expenses/${user._id}/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       navigate('/expense-tracker');
     } catch (err) {
-      alert('Error deleting transaction');
+      alert('Error deleting transaction', err);
     }
   };
 

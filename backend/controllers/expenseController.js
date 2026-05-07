@@ -4,7 +4,7 @@ const User = mongoose.models.User || mongoose.model('User');
 
 export const getExpenses = async (req, res) => {
   try {
-    const user = await User.findById(req.params.userId);
+    const user = await User.findById(req.params.  userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
     res.json(user.expenses || []);
   } catch (err) {
@@ -59,6 +59,51 @@ export const deleteExpense = async (req, res) => {
     await user.save();
     res.json({ message: 'Deleted successfully' });
   } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getExpenseSummary = async (req, res) => {
+  try {
+    const { userId } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({ message: 'userId is required' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const expenses = user.expenses || [];
+
+    // Monthly income vs expense
+    const monthly = {};
+    expenses.forEach(({ date, type, amount }) => {
+      const month = date.slice(0, 7);
+      if (!monthly[month]) monthly[month] = { month, income: 0, expense: 0 };
+      monthly[month][type] += Number(amount);  // ✅ Convert here
+    });
+
+    // Spending by category
+    const byCategory = {};
+    expenses
+    .filter(e => e.type === 'expense')
+    .forEach(({ expenseType, amount }) => {
+      byCategory[expenseType] = (byCategory[expenseType] || 0) + Number(amount); // ✅
+    });
+
+    res.json({
+      monthly: Object.values(monthly).sort((a, b) =>
+        a.month.localeCompare(b.month)
+      ),
+      byCategory: Object.entries(byCategory).map(([name, value]) => ({
+        name,
+        value
+      }))
+    });
+
+  } catch (err) {
+    console.error('Summary error:', err);
     res.status(500).json({ message: err.message });
   }
 };

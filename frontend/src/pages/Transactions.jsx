@@ -22,8 +22,11 @@ const Transactions = () => {
 
   const fetchExpenses = useCallback(async () => {
     if (!user?._id) return;
+    const token = localStorage.getItem('token');
     try {
-      const response = await fetch(`${API_BASE}/expenses/${user._id}`);
+      const response = await fetch(`${API_BASE}/expenses/${user._id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
       setExpenses(data);
@@ -40,22 +43,30 @@ const Transactions = () => {
   const handleDelete = async (expenseId) => {
     const userId = user?._id || user?.id;
     if (!userId) return;
+    const token = localStorage.getItem('token');
     try {
-      await fetch(`${API_BASE}/expenses/${userId}/${expenseId}`, { method: 'DELETE' });
+      await fetch(`${API_BASE}/expenses/${userId}/${expenseId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       setExpenses(expenses.filter(e => e._id !== expenseId));
     } catch (err) {
-      alert('Error deleting expense');
+      alert('Error deleting expense', err);
     }
   };
 
   const handleAdd = async (e) => {
     e.preventDefault();
     if (!user?._id || !newExpense.title || !newExpense.amount || !newExpense.date) return;
+    const token = localStorage.getItem('token');
 
     try {
       const response = await fetch(`${API_BASE}/expenses/${user._id}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(newExpense)
       });
       if (!response.ok) throw new Error('Failed to add');
@@ -64,18 +75,22 @@ const Transactions = () => {
       setNewExpense({ title: '', amount: '', date: '' });
       setShowAddForm(false);
     } catch (err) {
-      alert('Error adding expense');
+      alert('Error adding expense', err);
     }
   };
 
   const handleEdit = async (e) => {
     e.preventDefault();
     if (!user?._id || !editExpense.title || !editExpense.amount || !editExpense.date) return;
+    const token = localStorage.getItem('token');
 
     try {
       const response = await fetch(`${API_BASE}/expenses/${user._id}/${editingId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(editExpense)
       });
       if (!response.ok) throw new Error('Failed to update');
@@ -84,7 +99,7 @@ const Transactions = () => {
       setEditingId(null);
       setEditExpense({ title: '', amount: '', date: '' });
     } catch (err) {
-      alert('Error updating expense');
+      alert('Error updating expense', err);
     }
   };
 

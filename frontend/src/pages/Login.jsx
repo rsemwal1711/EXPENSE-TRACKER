@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
-
+// const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+const API_BASE = 'https://expense-tracker-backend-1ttg.onrender.com';
 export default function Login() {
   const [loading, setLoading] = useState(false);
   const [xp, setXp] = useState(null); // { earned, total }

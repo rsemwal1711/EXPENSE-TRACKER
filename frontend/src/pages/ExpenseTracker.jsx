@@ -50,7 +50,8 @@ const ExpenseTracker = () => {
   } catch (err) {
     console.error("Fetch error:", err);
   }
-}, [user?._id]);
+// }, [user?._id]);
+}, []);
 
   useEffect(() => {
     if (!user) {
@@ -100,8 +101,8 @@ const ExpenseTracker = () => {
   const handleLogout = () => {
     localStorage.removeItem('user');
     setSidebarOpen(false);
-    // navigate('/login');
-    window.location.href = '/login';
+    navigate('/login');
+    // window.location.href = '/login';
   };
 
   const totalIncome = expenses.filter(e => e.type === 'income').reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
@@ -233,7 +234,7 @@ const ExpenseTracker = () => {
               </div>
               <div className="overview-card">
                 <div>
-                  <span className="overview-card-label">Total Income</span>
+                    <span className="overview-card-label">Total Income</span>
                   <h3>₹{totalIncome.toLocaleString('en-IN')}</h3>
                   <p className="overview-card-text">All income recorded.</p>
                 </div>

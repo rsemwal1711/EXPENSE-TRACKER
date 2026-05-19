@@ -4,7 +4,6 @@ import './Transactions.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000' : 'https://expense-tracker-backend-1ttg.onrender.com');
 
-// ── XP helper: sync new XP total into localStorage ────────────────────────
 const syncXpToStorage = (totalXp) => {
   const raw = localStorage.getItem('user');
   if (!raw) return;
@@ -12,7 +11,6 @@ const syncXpToStorage = (totalXp) => {
   parsed.xp = totalXp;
   localStorage.setItem('user', JSON.stringify(parsed));
 };
-// ──────────────────────────────────────────────────────────────────────────
 
 const TransactionDetails = () => {
   const { id } = useParams();
@@ -22,6 +20,10 @@ const TransactionDetails = () => {
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState({ title: '', amount: '', date: '' });
   const [xpToast, setXpToast] = useState(null);
+  const [receipt, setReceipt] = useState(null);
+  const [receiptLoading, setReceiptLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [receiptFile, setReceiptFile] = useState(null);
 
   const userData = localStorage.getItem('user');
   const user = userData ? JSON.parse(userData) : null;
@@ -51,11 +53,103 @@ const TransactionDetails = () => {
     }
   };
 
+  const fetchReceipt = async () => {
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`${API_BASE}/receipts/transaction/${id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      console.log('Receipt response data:', data);
+      // ← Only set receipt if it has actual data
+      setReceipt(data && data.id ? data : null);
+    } catch (err) {
+      console.error('Receipt fetch error:', err);
+      setReceipt(null);
+    } finally {
+      setReceiptLoading(false);
+    }
+  };
+
+
+  const handleReceiptUpload = async () => {
+    console.log('handleReceiptUpload called');
+    console.log('receiptFile:', receiptFile);
+    console.log('expense:', expense);
+    if (!receiptFile || !expense) {
+      console.log('Returning early - receiptFile:', receiptFile, 'expense:', expense);
+      return;
+    }
+    const token = localStorage.getItem('token');
+    const formData = new FormData();
+    formData.append('receipt', receiptFile);
+    formData.append('transactionId', id);
+    formData.append('date', expense.date);
+    setUploading(true);
+    try {
+      console.log('Making fetch request to:', `${API_BASE}/receipts/upload`);
+      const res = await fetch(`${API_BASE}/receipts/upload`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      console.log('Response status:', res.status);
+      console.log('Response ok:', res.ok);
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        throw new Error(`Upload failed (${res.status}): ${errText}`);
+      }
+      const data = await res.json().catch(() => ({}));
+      console.log('Upload response:', data);
+      // If backend returned a valid receipt object use it, otherwise re-fetch
+      if (data && (data.id || data.fileUrl)) {
+        setReceipt(data);
+      } else {
+        console.warn('Upload returned unexpected payload, re-fetching receipt');
+        await fetchReceipt();
+      }
+      setReceiptFile(null);
+    } catch (err) {
+      console.error('Upload error details:', err);
+      alert('Upload failed: ' + err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleReceiptDelete = async () => {
+    if (!receipt) return;
+    if (!confirm('Delete this receipt?')) return;
+    const token = localStorage.getItem('token');
+    try {
+      await fetch(`${API_BASE}/receipts/${receipt.id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setReceipt(null);
+    } catch (err) {
+      alert('Delete failed: ' + err.message);
+    }
+  };
+
+  const handleViewReceipt = () => {
+    console.log('handleViewReceipt called, receipt:', receipt);
+    if (!receipt?.fileUrl) return;
+    const url = receipt.fileUrl.startsWith('http') ? receipt.fileUrl : `${API_BASE}${receipt.fileUrl}`;
+    const newWin = window.open('', '_blank', 'noopener,noreferrer');
+    if (newWin) {
+      newWin.opener = null;
+      newWin.location = url;
+      try { newWin.focus(); } catch (e) { /* ignore */ }
+    } else {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   const handleUpdate = async (e) => {
     e.preventDefault();
     if (!user?._id || !editData.title || !editData.amount || !editData.date) return;
     const token = localStorage.getItem('token');
-
     try {
       const response = await fetch(`${API_BASE}/expenses/${user._id}/${id}`, {
         method: 'PUT',
@@ -67,18 +161,13 @@ const TransactionDetails = () => {
       });
       if (!response.ok) throw new Error('Failed to update');
       const data = await response.json();
-
-      // Backend returns { expense, xpEarned, totalXp }
       const updatedExpense = data.expense || data;
       setExpense(updatedExpense);
       setEditing(false);
-
-      // ── Sync XP and show toast ──
       if (data.xpEarned) {
         syncXpToStorage(data.totalXp);
         showXpToast(data.xpEarned, data.totalXp);
       }
-
     } catch (err) {
       alert('Error updating transaction', err);
     }
@@ -99,13 +188,12 @@ const TransactionDetails = () => {
     }
   };
 
+  // ── Single useEffect ──
   useEffect(() => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
+    if (!user) { navigate('/login'); return; }
     fetchExpense();
-  }, [user, id]);
+    fetchReceipt();
+  }, []);
 
   if (loading) {
     return (
@@ -133,7 +221,6 @@ const TransactionDetails = () => {
   return (
     <div className="transactions-wrapper">
 
-      {/* XP Toast */}
       {xpToast && (
         <div className="xp-toast">
           <span className="xp-toast-icon">⚡</span>
@@ -153,11 +240,8 @@ const TransactionDetails = () => {
         <button className="primary-btn" onClick={() => setEditing(!editing)}>
           {editing ? 'Cancel Edit' : 'Edit Transaction'}
         </button>
-        <button
-          className="cancel-btn"
-          onClick={handleDelete}
-          style={{ background: '#dc3545', borderColor: '#dc3545', color: 'white' }}
-        >
+        <button className="cancel-btn" onClick={handleDelete}
+          style={{ background: '#dc3545', borderColor: '#dc3545', color: 'white' }}>
           Delete Transaction
         </button>
         <button className="cancel-btn" onClick={() => navigate('/expense-tracker')}>
@@ -169,28 +253,15 @@ const TransactionDetails = () => {
         {editing ? (
           <form onSubmit={handleUpdate} className="expense-form">
             <div className="form-row">
-              <input
-                type="text"
-                placeholder="Transaction title"
+              <input type="text" placeholder="Transaction title"
                 value={editData.title}
-                onChange={(e) => setEditData({ ...editData, title: e.target.value })}
-                required
-              />
-              <input
-                type="number"
-                placeholder="Amount"
+                onChange={(e) => setEditData({ ...editData, title: e.target.value })} required />
+              <input type="number" placeholder="Amount"
                 value={editData.amount}
                 onChange={(e) => setEditData({ ...editData, amount: e.target.value })}
-                min="0"
-                step="0.01"
-                required
-              />
-              <input
-                type="date"
-                value={editData.date}
-                onChange={(e) => setEditData({ ...editData, date: e.target.value })}
-                required
-              />
+                min="0" step="0.01" required />
+              <input type="date" value={editData.date}
+                onChange={(e) => setEditData({ ...editData, date: e.target.value })} required />
             </div>
             <div className="form-actions">
               <button type="submit" className="primary-btn">Update Transaction</button>
@@ -218,6 +289,53 @@ const TransactionDetails = () => {
           </div>
         )}
       </section>
+
+      {/* ── Receipt Section ── */}
+      <section className="transactions-form-card" style={{ marginTop: '16px' }}>
+        <div className="receipt-section">
+          <h3 className="receipt-title">📎 Receipt</h3>
+          {console.log('Receipt data:', receipt)}
+          {receiptLoading ? (
+            <p style={{ color: '#666', fontSize: '14px' }}>Loading receipt...</p>
+          ) : receipt ? (
+            <div className="receipt-preview">
+              {receipt.fileType === 'image' ? (
+                <img src={receipt.fileUrl} alt="Receipt" className="receipt-img" />
+              ) : (
+                <a href={receipt.fileUrl} target="_blank" rel="noreferrer" className="receipt-pdf-link">
+                  📄 {receipt.fileName}
+                </a>
+              )}
+              <div className="receipt-actions">
+                 <a href={receipt.fileUrl} target="_blank" rel="noreferrer" className="edit-btn">View</a>
+                <button className="delete-btn" onClick={handleReceiptDelete}>Delete</button>
+              </div>
+            </div>
+          ) : (
+            <div className="receipt-upload">
+              <p style={{ color: '#666', fontSize: '13px', marginBottom: '12px' }}>
+                No receipt attached. Upload an image or PDF.
+              </p>
+              <div className="receipt-upload-row">
+                <input type="file" accept="image/*,.pdf"
+                  onChange={(e) => setReceiptFile(e.target.files[0])}
+                  className="receipt-file-input" />
+                <button className="primary-btn"
+                  onClick={handleReceiptUpload}
+                  disabled={!receiptFile || uploading}>
+                  {uploading ? 'Uploading...' : 'Upload Receipt'}
+                </button>
+              </div>
+              {receiptFile && (
+                <p style={{ color: '#888', fontSize: '12px', marginTop: '8px' }}>
+                  Selected: {receiptFile.name}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+
     </div>
   );
 };

@@ -190,12 +190,29 @@ export const getExpenses = async (req, res) => {
   }
 };
 
+// export const getExpenseById = async (req, res) => {
+//   try {
+//     const expense = await Expense.findOne({ _id: req.params.id, userId: req.user.id });
+//     if (!expense) return res.status(404).json({ message: 'Not found' });
+//     res.json(expense);
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
 export const getExpenseById = async (req, res) => {
   try {
-    const expense = await Expense.findOne({ _id: req.params.id, userId: req.user.id });
+    console.log('getExpenseById called');
+    console.log('params.id:', req.params.id);
+    console.log('user.id:', req.user.id);
+    
+    const expense = await Expense.findById(req.params.id);
+    console.log('expense found:', expense);
+    
     if (!expense) return res.status(404).json({ message: 'Not found' });
     res.json(expense);
   } catch (err) {
+    console.error('getExpenseById error:', err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -304,3 +321,4 @@ export const getExpenseSummary = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+

@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import TransactionDetails from './pages/TransactionDetails';
 import NotFound from './pages/NotFound';
+import Receipts from './pages/Receipts';
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -28,18 +29,29 @@ const App = () => {
   return (
     <BrowserRouter>
       <Routes>
+        
         <Route path="/login"  element={<Login />} />
+        
         <Route path="/signup" element={<Signup />} />
+
         <Route path="/" element={
           <ProtectedRoute><Dashboard /></ProtectedRoute>
         } />
+
         <Route path="/expense-tracker" element={
           <ProtectedRoute><ExpenseTracker /></ProtectedRoute>
         } />
+
         <Route path="/transaction/:id" element={
           <ProtectedRoute><TransactionDetails /></ProtectedRoute>
         } />
+
         <Route path="*" element={<NotFound />} />
+
+        <Route path="/receipts" element={
+          <ProtectedRoute><Receipts /></ProtectedRoute>
+        } />
+
       </Routes>
     </BrowserRouter>
   );

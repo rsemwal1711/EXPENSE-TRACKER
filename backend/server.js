@@ -1,14 +1,14 @@
+import dotenv from 'dotenv';
+dotenv.config(); // ← FIRST, before everything
+
 import express from "express";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
 import session from "express-session";
 import cookieParser from "cookie-parser";
-
-dotenv.config();
-
+import receiptRoutes from './routes/receiptRoutes.js';
 import authRoutes from "./routes/authRoutes.js";
 import expenseRoutes from "./routes/expenseRoutes.js";
 
@@ -16,11 +16,16 @@ const app = express();
 
 // CORS — must be before routes
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://expense-tracker-frontend-8171.onrender.com'],
-  credentials: true
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://expense-tracker-frontend-8171.onrender.com'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// app.options('*', cors());
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -59,6 +64,7 @@ app.use(express.urlencoded({ extended: true }));
 // ✅ API routes FIRST
 app.use('/users', authRoutes);
 app.use(expenseRoutes);
+app.use(receiptRoutes); 
 
 // ── TEMPORARY MIGRATION ROUTE — DELETE AFTER USE ──
 app.get('/migrate-expenses', async (req, res) => {
@@ -103,9 +109,18 @@ app.use((err, req, res, next) => {
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
-app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/dist", "index.html"));
-});
+// app.get(/.*/, (req, res) => {
+//   res.sendFile(path.join(__dirname, "../frontend/dist", "index.html"));
+// });
+
+// Only serve frontend in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, 'public')));
+  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+  app.get(/.*/, (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend/dist", "index.html"));
+  });
+}
 
 const PORT = process.env.PORT || 4000;
 const MONGO_URI = process.env.MONGO_URI;

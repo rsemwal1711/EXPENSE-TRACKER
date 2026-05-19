@@ -22,13 +22,19 @@ function describeArc(cx, cy, r, startDeg, endDeg) {
   return `M ${cx} ${cy} L ${s.x} ${s.y} A ${r} ${r} 0 ${large} 1 ${e.x} ${e.y} Z`;
 }
 
+const XP_REQUIRED = 1500;
+
 const ExpenseAnalytics = () => {
   const [expenses, setExpenses] = useState([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [hoveredSlice, setHoveredSlice] = useState(null);
-  const [pieFilterType, setPieFilterType] = useState('all'); // 'all' | 'year' | 'month'
+  const [pieFilterType, setPieFilterType] = useState('all');
   const [pieYear, setPieYear] = useState(new Date().getFullYear().toString());
   const [pieMonth, setPieMonth] = useState(String(new Date().getMonth() + 1).padStart(2, '0'));
+
+  // ── XP state ──────────────────────────────────────────────────────────────
+  const [userXP, setUserXP] = useState(0);
+
   const navigate = useNavigate();
 
   const [user] = useState(() => {
@@ -37,6 +43,15 @@ const ExpenseAnalytics = () => {
   });
 
   const userId = user?._id || user?.id;
+
+  // ── Fetch XP from localStorage user object ────────────────────────────────
+  useEffect(() => {
+    const raw = localStorage.getItem('user');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      setUserXP(parsed.xp || 0);
+    }
+  }, []);
 
   const fetchExpenses = useCallback(async () => {
     if (!userId) return;
@@ -58,6 +73,82 @@ const ExpenseAnalytics = () => {
   }, [user, navigate, fetchExpenses]);
 
   if (!user) return null;
+
+  // ── XP locked screen ──────────────────────────────────────────────────────
+  if (userXP < XP_REQUIRED) {
+    const pct = Math.min((userXP / XP_REQUIRED) * 100, 100);
+    const remaining = (XP_REQUIRED - userXP).toLocaleString('en-IN');
+
+    return (
+      <div className="ea-wrapper">
+        <section className="ea-header">
+          <div className="ea-header-left">
+            <h2 className="ea-title">Expense Analytics</h2>
+            <p className="ea-subtitle">Advanced insights for your spending patterns</p>
+          </div>
+          <div className="ea-xp-badge">
+            <span className="ea-xp-badge-label">YOUR XP</span>
+            <strong className="ea-xp-badge-value">{userXP.toLocaleString('en-IN')}</strong>
+          </div>
+        </section>
+
+        <div className="ea-locked-card">
+          <div className="ea-lock-icon">🔒</div>
+          <h3 className="ea-locked-title">Locked — 1,500 XP required</h3>
+          <p className="ea-locked-sub">Keep logging transactions and staying active to earn XP</p>
+
+          <div className="ea-xp-bar-track">
+            <div className="ea-xp-bar-fill" style={{ width: `${pct}%` }} />
+          </div>
+          <p className="ea-xp-progress">
+            {userXP.toLocaleString('en-IN')} / {XP_REQUIRED.toLocaleString('en-IN')} XP
+            &nbsp;— {remaining} XP to go
+          </p>
+
+          <div className="ea-xp-tips">
+            <div className="ea-xp-tip">
+              <span>Daily login</span>
+              <strong>+10 XP/day</strong>
+            </div>
+            <div className="ea-xp-tip">
+              <span>Log transaction</span>
+              <strong>+15 XP each</strong>
+            </div>
+            <div className="ea-xp-tip">
+              <span>7-day streak</span>
+              <strong>+75 XP bonus</strong>
+            </div>
+            <div className="ea-xp-tip">
+              <span>10 transactions</span>
+              <strong>+100 XP bonus</strong>
+            </div>
+            <div className="ea-xp-tip">
+              <span>25 transactions</span>
+              <strong>+150 XP bonus</strong>
+            </div>
+            <div className="ea-xp-tip">
+              <span>30-day streak</span>
+              <strong>+200 XP bonus</strong>
+            </div>
+          </div>
+        </div>
+
+        {/* Blurred preview of what's inside */}
+        <div className="ea-locked-preview">
+          <section className="ea-stats">
+            {['Total Spent', 'Avg / Expense', 'Highest Single', 'Entries'].map(label => (
+              <div key={label} className="ea-stat-box">
+                <span className="ea-stat-label">{label}</span>
+                <strong className="ea-stat-value">——</strong>
+              </div>
+            ))}
+          </section>
+          <section className="ea-card" style={{ height: 160 }} />
+          <section className="ea-card" style={{ height: 120 }} />
+        </div>
+      </div>
+    );
+  }
 
   // ── Data prep ──────────────────────────────────────────────────────────────
 

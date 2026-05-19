@@ -22,7 +22,129 @@
   --ea-radius-sm: 8px;
   --ea-shadow:    0 4px 24px rgba(0,0,0,0.4);
 }
+/* XP Badge in header */
+.ea-xp-badge {
+  background: rgba(245, 158, 11, 0.1);
+  border-radius: 10px;
+  padding: 8px 16px;
+  text-align: center;
+  min-width: 80px;
+}
+.ea-xp-badge-label {
+  display: block;
+  font-size: 11px;
+  color: #f59e0b;
+  letter-spacing: 0.06em;
+  margin-bottom: 2px;
+}
+.ea-xp-badge-value {
+  font-size: 20px;
+  font-weight: 500;
+  color: #f59e0b;
+}
 
+/* Locked card */
+.ea-locked-card {
+  background: var(--ea-surface);
+  border: 1px solid #2e3250;
+  border-radius: 14px;
+  padding: 32px 28px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.ea-lock-icon {
+  width: 56px;
+  height: 56px;
+  background: #1a1f2e;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 22px;
+}
+.ea-locked-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: #e8eaf0;
+  margin: 0 0 6px;
+}
+.ea-locked-sub {
+  font-size: 13px;
+  color: #7a8099;
+  line-height: 1.6;
+  margin: 0 0 24px;
+}
+
+/* XP progress bar */
+.ea-xp-bar-track {
+  background: #1a1f2e;
+  border-radius: 99px;
+  height: 8px;
+  max-width: 380px;
+  margin: 0 auto 10px;
+  overflow: hidden;
+}
+.ea-xp-bar-fill {
+  background: #f59e0b;
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.6s ease;
+}
+.ea-xp-progress {
+  font-size: 13px;
+  color: #f59e0b;
+  margin: 0 0 24px !important;
+}
+
+/* Divider + tips label */
+.ea-locked-card hr {
+  border: none;
+  border-top: 1px solid #2e3250;
+  margin: 0 0 20px;
+}
+.ea-tips-label {
+  font-size: 11px;
+  color: #4a5070;
+  letter-spacing: 0.06em;
+  margin: 0 0 12px;
+}
+
+/* Tips grid */
+.ea-xp-tips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  max-width: 480px;
+  margin: 0 auto;
+  text-align: left;
+}
+.ea-xp-tip {
+  background: #1a1f2e;
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.ea-xp-tip span {
+  display: block;
+  font-size: 12px;
+  color: #7a8099;
+  margin-bottom: 4px;
+}
+.ea-xp-tip strong {
+  font-size: 14px;
+  color: #33ff00;
+}
+.ea-xp-tip strong.bonus {
+  color: #f59e0b;
+}
+
+/* Blurred preview */
+.ea-locked-preview {
+  opacity: 0.18;
+  filter: blur(3px);
+  pointer-events: none;
+  user-select: none;
+}
 /* ── Base ── */
 .ea-wrapper {
   padding: 0 0 3rem;

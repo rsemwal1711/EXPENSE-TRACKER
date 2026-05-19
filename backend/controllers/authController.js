@@ -1,23 +1,24 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../middleware/authMiddleware.js";
+import User from '../models/User.js';
 
-const userSchema = new mongoose.Schema({
-  name: String,
-  email: { type: String, unique: true },
-  password: String,
-  googleId: String,
-  provider: { type: String, default: 'local' },
-  profilePicture: String,
-  xp: { type: Number, default: 0 },
-  expenses: {
-    type: Array,
-    default: []
-  },
-  createdAt: { type: Date, default: Date.now }
-});
+// const userSchema = new mongoose.Schema({
+//   name: String,
+//   email: { type: String, unique: true },
+//   password: String,
+//   googleId: String,
+//   provider: { type: String, default: 'local' },
+//   profilePicture: String,
+//   xp: { type: Number, default: 0 },
+//   expenses: {
+//     type: Array,
+//     default: []
+//   },
+//   createdAt: { type: Date, default: Date.now }
+// });
 
-const User = mongoose.models.User || mongoose.model("User", userSchema);
+// const User = mongoose.models.User || mongoose.model("User", userSchema);
 
 // SIGNUP
 export const signup = async (req, res) => {

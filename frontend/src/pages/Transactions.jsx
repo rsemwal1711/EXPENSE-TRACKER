@@ -4,21 +4,40 @@ import { useNavigate } from 'react-router-dom';
 
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000' : 'https://expense-tracker-backend-1ttg.onrender.com');
 
+// ── XP helper: sync new XP total into localStorage ────────────────────────
+const syncXpToStorage = (totalXp) => {
+  const raw = localStorage.getItem('user');
+  if (!raw) return;
+  const parsed = JSON.parse(raw);
+  parsed.xp = totalXp;
+  localStorage.setItem('user', JSON.stringify(parsed));
+};
+// ──────────────────────────────────────────────────────────────────────────
+
 const Transactions = () => {
   const [expenses, setExpenses] = useState([]);
   const [search, setSearch] = useState('');
-  const [sortBy, setSortBy] = useState('date'); // 'date' | 'amount' | 'title'
-  const [sortOrder, setSortOrder] = useState('desc'); // 'asc' | 'desc'
+  const [sortBy, setSortBy] = useState('date');
+  const [sortOrder, setSortOrder] = useState('desc');
   const [filterMonth, setFilterMonth] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [newExpense, setNewExpense] = useState({ title: '', amount: '', date: '', type: 'expense', expenseType: 'other' });
   const [editExpense, setEditExpense] = useState({ title: '', amount: '', date: '', type: 'expense', expenseType: 'other' });
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+
+  // ── XP toast state ────────────────────────────────────────────────────
+  const [xpToast, setXpToast] = useState(null); // { xpEarned, totalXp, milestoneMessage }
+
   const navigate = useNavigate();
 
   const userData = localStorage.getItem('user');
   const user = userData ? JSON.parse(userData) : null;
+
+  const showXpToast = (xpEarned, totalXp, milestoneMessage = null) => {
+    setXpToast({ xpEarned, totalXp, milestoneMessage });
+    setTimeout(() => setXpToast(null), 3500);
+  };
 
   const fetchExpenses = useCallback(async () => {
     if (!user?._id) return;
@@ -50,34 +69,47 @@ const Transactions = () => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       setExpenses(expenses.filter(e => e._id !== expenseId));
+      setDeleteConfirm(null);
+      // No XP for delete
     } catch (err) {
       alert('Error deleting expense', err);
     }
   };
 
   const handleAdd = async (e) => {
-    e.preventDefault();
-    if (!user?._id || !newExpense.title || !newExpense.amount || !newExpense.date) return;
-    const token = localStorage.getItem('token');
+  e.preventDefault();
+  if (!user?._id || !newExpense.title || !newExpense.amount || !newExpense.date) return;
+  const token = localStorage.getItem('token');
 
-    try {
-      const response = await fetch(`${API_BASE}/expenses/${user._id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(newExpense)
-      });
-      if (!response.ok) throw new Error('Failed to add');
-      const addedExpense = await response.json();
-      setExpenses([addedExpense, ...expenses]);
-      setNewExpense({ title: '', amount: '', date: '' });
-      setShowAddForm(false);
-    } catch (err) {
-      alert('Error adding expense', err);
-    }
-  };
+  try {
+    const response = await fetch(`${API_BASE}/expenses/${user._id}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(newExpense)
+    });
+    if (!response.ok) throw new Error('Failed to add');
+    const data = await response.json();
+
+    // ── DEBUG: log everything ──
+    console.log('Full response:', JSON.stringify(data));
+
+    const addedExpense = data.expense || data;
+    setExpenses([addedExpense, ...expenses]);
+    setNewExpense({ title: '', amount: '', date: '', type: 'expense', expenseType: 'other' });
+    setShowAddForm(false);
+
+    // ── Force show toast regardless, for testing ──
+    syncXpToStorage(data.totalXp ?? 0);
+    showXpToast(data.xpEarned ?? 99, data.totalXp ?? 999, data.milestoneMessage ?? null);
+
+  } catch (err) {
+    console.error('Error adding expense:', err);
+    alert('Error adding expense: ' + err.message);
+  }
+};
 
   const handleEdit = async (e) => {
     e.preventDefault();
@@ -94,10 +126,20 @@ const Transactions = () => {
         body: JSON.stringify(editExpense)
       });
       if (!response.ok) throw new Error('Failed to update');
-      const updatedExpense = await response.json();
+      const data = await response.json();
+
+      // Backend now returns { expense, xpEarned, totalXp }
+      const updatedExpense = data.expense || data;
       setExpenses(expenses.map(exp => exp._id === editingId ? updatedExpense : exp));
       setEditingId(null);
-      setEditExpense({ title: '', amount: '', date: '' });
+      setEditExpense({ title: '', amount: '', date: '', type: 'expense', expenseType: 'other' });
+
+      // ── Show XP toast + sync to localStorage ──
+      if (data.xpEarned) {
+        syncXpToStorage(data.totalXp);
+        showXpToast(data.xpEarned, data.totalXp);
+      }
+
     } catch (err) {
       alert('Error updating expense', err);
     }
@@ -137,6 +179,21 @@ const Transactions = () => {
 
   return (
     <div className="transactions-wrapper">
+
+      {/* ── XP Toast ── */}
+      {xpToast && (
+        <div className="xp-toast">
+          <span className="xp-toast-icon">⚡</span>
+          <div className="xp-toast-body">
+            <span className="xp-toast-earned">+{xpToast.xpEarned} XP earned!</span>
+            {xpToast.milestoneMessage && (
+              <span className="xp-toast-milestone">{xpToast.milestoneMessage}</span>
+            )}
+            <span className="xp-toast-total">Total: {xpToast.totalXp?.toLocaleString('en-IN')} XP</span>
+          </div>
+        </div>
+      )}
+
       <section className="transactions-header">
         <h2>Transactions</h2>
         <p>All your recorded expenses in one place.</p>
@@ -271,7 +328,6 @@ const Transactions = () => {
               {filtered.map((expense, index) => (
                 <tr key={expense._id}>
                   {editingId === expense._id ? (
-                    // Edit form row
                     <>
                       <td data-label="#">{index + 1}</td>
                       <td data-label="Title" colSpan="3">
@@ -308,7 +364,6 @@ const Transactions = () => {
                       </td>
                     </>
                   ) : (
-                    // Normal display row
                     <>
                       <td data-label="#">{index + 1}</td>
                       <td data-label="Type">

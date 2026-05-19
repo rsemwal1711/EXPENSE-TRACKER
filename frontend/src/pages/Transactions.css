@@ -1,5 +1,62 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap');
 
+/* ── Paste into Transactions.css ── */
+
+/* ── XP Toast ── */
+.xp-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  background: #1a1f2e;
+  border: 1px solid #f59e0b;
+  border-radius: 10px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: xp-slide-in 0.3s ease, xp-fade-out 0.4s ease 3.1s forwards;
+  min-width: 220px;
+  max-width: 300px;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.25);
+}
+
+.xp-toast-icon {
+  font-size: 22px;
+}
+
+.xp-toast-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.xp-toast-earned {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f59e0b;
+}
+
+.xp-toast-milestone {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ff9f43;
+}
+
+.xp-toast-total {
+  font-size: 12px;
+  color: #7a8099;
+}
+
+@keyframes xp-slide-in {
+  from { opacity: 0; transform: translateX(30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes xp-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
 /* ══════════════════════════════════
    TRANSACTIONS PAGE
 ══════════════════════════════════ */

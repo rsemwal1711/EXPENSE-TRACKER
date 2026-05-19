@@ -4,6 +4,16 @@ import './Transactions.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000' : 'https://expense-tracker-backend-1ttg.onrender.com');
 
+// ── XP helper: sync new XP total into localStorage ────────────────────────
+const syncXpToStorage = (totalXp) => {
+  const raw = localStorage.getItem('user');
+  if (!raw) return;
+  const parsed = JSON.parse(raw);
+  parsed.xp = totalXp;
+  localStorage.setItem('user', JSON.stringify(parsed));
+};
+// ──────────────────────────────────────────────────────────────────────────
+
 const TransactionDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -11,14 +21,19 @@ const TransactionDetails = () => {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState({ title: '', amount: '', date: '' });
+  const [xpToast, setXpToast] = useState(null);
 
   const userData = localStorage.getItem('user');
   const user = userData ? JSON.parse(userData) : null;
 
+  const showXpToast = (xpEarned, totalXp) => {
+    setXpToast({ xpEarned, totalXp });
+    setTimeout(() => setXpToast(null), 3500);
+  };
+
   const fetchExpense = async () => {
     if (!user?._id || !id) return;
     const token = localStorage.getItem('token');
-
     try {
       const response = await fetch(`${API_BASE}/expenses/${user._id}/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -51,9 +66,19 @@ const TransactionDetails = () => {
         body: JSON.stringify(editData)
       });
       if (!response.ok) throw new Error('Failed to update');
-      const updatedExpense = await response.json();
+      const data = await response.json();
+
+      // Backend returns { expense, xpEarned, totalXp }
+      const updatedExpense = data.expense || data;
       setExpense(updatedExpense);
       setEditing(false);
+
+      // ── Sync XP and show toast ──
+      if (data.xpEarned) {
+        syncXpToStorage(data.totalXp);
+        showXpToast(data.xpEarned, data.totalXp);
+      }
+
     } catch (err) {
       alert('Error updating transaction', err);
     }
@@ -63,7 +88,6 @@ const TransactionDetails = () => {
     if (!user?._id) return;
     if (!confirm('Are you sure you want to delete this transaction?')) return;
     const token = localStorage.getItem('token');
-
     try {
       await fetch(`${API_BASE}/expenses/${user._id}/${id}`, {
         method: 'DELETE',
@@ -108,16 +132,25 @@ const TransactionDetails = () => {
 
   return (
     <div className="transactions-wrapper">
+
+      {/* XP Toast */}
+      {xpToast && (
+        <div className="xp-toast">
+          <span className="xp-toast-icon">⚡</span>
+          <div className="xp-toast-body">
+            <span className="xp-toast-earned">+{xpToast.xpEarned} XP earned!</span>
+            <span className="xp-toast-total">Total: {xpToast.totalXp?.toLocaleString('en-IN')} XP</span>
+          </div>
+        </div>
+      )}
+
       <section className="transactions-header">
         <h2>Transaction Details</h2>
         <p>View and manage your transaction</p>
       </section>
 
       <section className="transactions-actions">
-        <button
-          className="primary-btn"
-          onClick={() => setEditing(!editing)}
-        >
+        <button className="primary-btn" onClick={() => setEditing(!editing)}>
           {editing ? 'Cancel Edit' : 'Edit Transaction'}
         </button>
         <button
@@ -127,10 +160,7 @@ const TransactionDetails = () => {
         >
           Delete Transaction
         </button>
-        <button
-          className="cancel-btn"
-          onClick={() => navigate('/expense-tracker')}
-        >
+        <button className="cancel-btn" onClick={() => navigate('/expense-tracker')}>
           Back to Dashboard
         </button>
       </section>

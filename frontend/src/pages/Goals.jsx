@@ -26,6 +26,38 @@ const Goals = () => {
     localStorage.setItem('goals', JSON.stringify(goals));
   }, [goals]);
 
+  useEffect(() => {
+  goals.forEach(goal => {
+    if (!goal.deadline) return;
+
+    const daysLeft = getDaysLeft(goal.deadline);
+
+    if (daysLeft === 7) {
+      alert(`⏰ Only 7 days left for your goal "${goal.name}"`);
+    }
+
+    if (daysLeft === 3) {
+      alert(`⚠️ Only 3 days left for your goal "${goal.name}"`);
+    }
+
+    if (daysLeft === 1) {
+      alert(`🚨 Tomorrow is the deadline for "${goal.name}"`);
+    }
+
+    if (daysLeft === 0) {
+      alert(`📅 Today is the deadline for "${goal.name}"`);
+    }
+
+    if (daysLeft < 0) {
+      alert(`❌ Goal "${goal.name}" is overdue`);
+    }
+
+    if (goal.savedAmount >= goal.targetAmount) {
+      alert(`🎉 Congratulations! You achieved "${goal.name}"`);
+    }
+  });
+}, [goals]);
+
   const handleAdd = () => {
     if (!name || !targetAmount) return alert('Please fill goal name and target amount');
     const goal = {
@@ -81,9 +113,12 @@ const Goals = () => {
 
   return (
     <div className="goals-wrapper">
+      <br />
       <section className="goals-header">
         <h2>Goals</h2>
+        <br />
         <p>Set savings goals and track your progress.</p>
+        <br />
       </section>
 
       {/* Add / Edit Form */}
@@ -118,7 +153,7 @@ const Goals = () => {
           {isEditing && <button className="cancel-btn" onClick={handleCancel}>Cancel</button>}
         </div>
       </section>
-
+      <br /> 
       {/* Goals List */}
       {goals.length === 0 ? (
         <p className="analytics-empty">No goals yet. Add one above to get started!</p>

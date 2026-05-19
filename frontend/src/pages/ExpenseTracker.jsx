@@ -6,6 +6,7 @@ import Goals from './Goals';
 import Analytics from './Analytics';
 import ExpenseAnalytics from './ExpenseAnalytics';
 import Settings from './Settings';
+import Receipts from './Receipts';
 
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000' : 'https://expense-tracker-backend-1ttg.onrender.com');
 
@@ -158,6 +159,7 @@ const ExpenseTracker = () => {
     // { id: 'analytics', icon: '⌇', label: 'Analytics' },
     { id: 'expenseAnalytics', icon: '⌇', label: 'Expense Analytics' },
     { id: 'charts', icon: '⌇', label: 'Charts' },
+    { id: 'receipts', icon: '🧾', label: 'Receipts' },
     { id: 'settings', icon: '⚙', label: 'Settings' },
   ];
 
@@ -168,6 +170,7 @@ const ExpenseTracker = () => {
     expenseAnalytics: 'Expense Analytics',
     expense: 'Charts',
     settings: 'Settings',
+    receipts: 'Receipts'
   };
 
   const renderContent = () => {
@@ -184,6 +187,8 @@ const ExpenseTracker = () => {
         return <Analytics />
       case 'settings':
         return <Settings />;
+       case 'receipts':
+        return <Receipts />;
       default:
         return (
           <>
@@ -218,6 +223,14 @@ const ExpenseTracker = () => {
                 >
                   <span className="quick-action-icon">⚙️</span>
                   <span>Settings</span>
+                </button>
+
+                <button
+                  className="quick-action-btn"
+                  onClick={() => setActiveTab('receipts')}
+                >
+                  <span className="quick-action-icon">🧾</span>
+                  <span>Receipts</span>
                 </button>
               </div>
             </section>
@@ -282,45 +295,7 @@ const ExpenseTracker = () => {
               </div>
             </section>
 
-            {/* Spending Trend Mini Chart */}
-            <section className="card spending-trend">
-              <div className="card-header">
-                <h3>Spending Trend</h3>
-                <span className="card-subtitle">Last 6 months</span>
-              </div>
-              <div className="mini-chart">
-                {Array.from({ length: 6 }, (_, i) => {
-                  const date = new Date();
-                  date.setMonth(date.getMonth() - (5 - i));
-                  const monthKey = date.toISOString().slice(0, 7);
-                  const monthIncome = expenses.filter(e => e.type === 'income' && e.date?.startsWith(monthKey)).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
-                  const monthExpense = expenses.filter(e => e.type !== 'income' && e.date?.startsWith(monthKey)).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
-                  const monthSpend = monthIncome - monthExpense;
-                  const maxSpend = Math.max(...Array.from({ length: 6 }, (_, j) => {
-                    const d = new Date();
-                    d.setMonth(d.getMonth() - (5 - j));
-                    const k = d.toISOString().slice(0, 7);
-                    const mIncome = expenses.filter(e => e.type === 'income' && e.date?.startsWith(k)).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
-                    const mExpense = expenses.filter(e => e.type !== 'income' && e.date?.startsWith(k)).reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
-                    return mIncome - mExpense;
-                  }));
-                  const height = maxSpend ? (Math.abs(monthSpend) / Math.abs(maxSpend)) * 100 : 0;
-
-                  return (
-                    <div key={i} className="mini-chart-bar">
-                      <div
-                        className="mini-chart-fill"
-                        style={{ height: `${height}%`, background: monthSpend >= 0 ? '#4ade80' : '#f87171' }}
-                        title={`₹${monthSpend.toLocaleString('en-IN')}`}
-                      />
-                      <span className="mini-chart-label">
-                        {date.toLocaleString('default', { month: 'short' })}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
+           
 
             {/* Recent Activity */}
             <section className="card recent-activity">

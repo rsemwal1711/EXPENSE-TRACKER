@@ -29,6 +29,7 @@
   padding: 8px 16px;
   text-align: center;
   min-width: 80px;
+  margin-left: 20px;
 }
 .ea-xp-badge-label {
   display: block;
@@ -51,6 +52,8 @@
   padding: 32px 28px;
   text-align: center;
   margin-bottom: 16px;
+  margin-left: 20px;
+  margin-right: 20px;
 }
 .ea-lock-icon {
   width: 56px;
@@ -180,12 +183,16 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  margin-left: 20px;
+  margin-top: 20px;
 }
 
 .ea-subtitle {
   margin: 0;
   font-size: 0.8rem;
   color: var(--ea-muted);
+  margin-left: 20px;
+  margin-top: 10px;
 }
 
 .ea-unlocked-badge {

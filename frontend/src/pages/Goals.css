@@ -486,3 +486,127 @@ body.light .goals-empty {
     transform: translateY(0);
   }
 }
+
+
+
+
+/* ══════════════════════════════════
+   CLEAN MOBILE UI
+══════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  .goals-wrapper {
+    padding: 0 12px 70px;
+  }
+
+  /* CARD */
+  .goal-card {
+
+    padding: 16px;
+
+    border-radius: 12px;
+  }
+
+  /* TOP */
+  .goal-top {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+
+    margin-bottom: 12px;
+  }
+
+  .goal-name {
+
+    font-size: 14px;
+
+    line-height: 1.4;
+  }
+
+  .goal-deadline-badge {
+
+    align-self: flex-start;
+
+    font-size: 9px;
+
+    padding: 3px 8px;
+  }
+
+  /* PROGRESS */
+  .goal-progress-track {
+
+    height: 6px;
+
+    margin-bottom: 8px;
+  }
+
+  .goal-progress-pct {
+
+    font-size: 10px;
+
+    margin-bottom: 10px;
+  }
+
+  /* AMOUNTS */
+  .goal-amounts {
+
+    display: grid;
+
+    grid-template-columns: 1fr;
+
+    gap: 6px;
+
+    margin-bottom: 10px;
+  }
+
+  .goal-amounts span {
+
+    font-size: 10px;
+  }
+
+  /* META */
+  .goal-meta {
+
+    font-size: 9px;
+
+    line-height: 1.4;
+
+    margin-bottom: 12px;
+  }
+
+  /* BUTTONS */
+  .goal-actions {
+
+    display: flex;
+
+    gap: 8px;
+  }
+
+  .goal-actions .edit-btn,
+  .goal-actions .delete-btn {
+
+    flex: 1;
+
+    padding: 9px 10px;
+
+    font-size: 11px;
+  }
+
+  /* FORM */
+  .goals-form-row {
+
+    flex-direction: column;
+
+    gap: 10px;
+  }
+
+  .goals-form-row input,
+  .goals-form-row button {
+
+    width: 100%;
+  }
+}

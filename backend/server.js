@@ -60,6 +60,36 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/users', authRoutes);
 app.use(expenseRoutes);
 
+// ── TEMPORARY MIGRATION ROUTE — DELETE AFTER USE ──
+app.get('/migrate-expenses', async (req, res) => {
+  try {
+    const User = mongoose.models.User;
+    const Expense = mongoose.models.Expense;
+    
+    const users = await User.find({ expenses: { $exists: true, $ne: [] } });
+    let total = 0;
+
+    for (const user of users) {
+      for (const exp of user.expenses) {
+        await Expense.create({
+          userId: user._id,
+          title: exp.title,
+          amount: exp.amount,
+          date: exp.date,
+          type: exp.type || 'expense',
+          expenseType: exp.expenseType || 'other'
+        });
+        total++;
+      }
+    }
+
+    res.json({ message: `Migrated ${total} expenses successfully` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+// ── END MIGRATION ROUTE ──
+
 // ✅ Error handler
 app.use((err, req, res, next) => {
   console.error('Error:', err.message);

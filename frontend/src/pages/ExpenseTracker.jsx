@@ -406,7 +406,7 @@ const ExpenseTracker = () => {
           </button>
           <div>
             <h2 className="dashboard-title">{PAGE_TITLES[activeTab]}</h2>
-            <p className="welcome-text">Welcome back, {user.name}</p>
+            <p className="welcome-text">Welcome back, {user?.name || user?.email?.split('@')[0] || 'User'}</p>
           </div>
         </header>
 

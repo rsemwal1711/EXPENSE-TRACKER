@@ -9,6 +9,7 @@ const Settings = () => {
 
   const userData = localStorage.getItem('user');
   const user = userData ? JSON.parse(userData) : null;
+  const token = localStorage.getItem('token');
 
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
@@ -17,80 +18,81 @@ const Settings = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [profileMsg, setProfileMsg] = useState('');
   const [passwordMsg, setPasswordMsg] = useState('');
-  const [notifications, setNotifications] = useState(() => {
-    return localStorage.getItem('notifications') !== 'false';
-  });
-  const [currency, setCurrency] = useState(() => {
-    return localStorage.getItem('currency') || 'INR';
-  });
-  const [dateFormat, setDateFormat] = useState(() => {
-    return localStorage.getItem('dateFormat') || 'DD/MM/YYYY';
-  });
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('theme') || 'auto';
-  });
-  const [compactView, setCompactView] = useState(() => {
-    return localStorage.getItem('compactView') === 'true';
-  });
-  const [autoBackup, setAutoBackup] = useState(() => {
-    return localStorage.getItem('autoBackup') !== 'false';
-  });
+  const [prefMsg, setPrefMsg] = useState('');
+  const [notifications, setNotifications] = useState(true);
+  const [currency, setCurrency] = useState('INR');
+  const [dateFormat, setDateFormat] = useState('DD/MM/YYYY');
+  const [theme, setTheme] = useState('auto');
+  const [compactView, setCompactView] = useState(false);
+  const [autoBackup, setAutoBackup] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [expenses, setExpenses] = useState([]);
+  const [prefLoading, setPrefLoading] = useState(false);
 
-  // Fetch expenses for account stats
+  // ── Fetch preferences from localStorage (no backend route yet)
   useEffect(() => {
+    setNotifications(localStorage.getItem('notifications') !== 'false');
+    setCurrency(localStorage.getItem('currency') || 'INR');
+    setDateFormat(localStorage.getItem('dateFormat') || 'DD/MM/YYYY');
+    setTheme(localStorage.getItem('theme') || 'auto');
+    setCompactView(localStorage.getItem('compactView') === 'true');
+    setAutoBackup(localStorage.getItem('autoBackup') !== 'false');
+  }, []);
+
+  // ── Fetch expenses
+  useEffect(() => {
+    if (!user?._id) return;
     const fetchExpenses = async () => {
-      if (!user?._id) return;
-      const token = localStorage.getItem('token');
       try {
-        const response = await fetch(`${API_BASE}/expenses/${user._id}`, {
+        const res = await fetch(`${API_BASE}/expenses/${user._id}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!response.ok) throw new Error('Failed to fetch expenses');
-        const data = await response.json();
-        setExpenses(data);
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        setExpenses(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('Failed to fetch expenses:', err);
+        setExpenses([]);
       }
     };
+    fetchExpenses();
+  }, []);
 
-    if (user) {
-      fetchExpenses();
-    }
-  }, [user]);
-
-  // Calculate account stats
   const accountStats = {
     totalExpenses: expenses.length,
     totalAmount: expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0),
-    avgExpense: expenses.length ? expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0) / expenses.length : 0,
-    oldestExpense: expenses.length ? new Date(Math.min(...expenses.map(e => new Date(e.date)))) : null,
-    newestExpense: expenses.length ? new Date(Math.max(...expenses.map(e => new Date(e.date)))) : null,
+    avgExpense: expenses.length
+      ? expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0) / expenses.length
+      : 0,
+    oldestExpense: expenses.length
+      ? new Date(Math.min(...expenses.map(e => new Date(e.date).getTime())))
+      : null,
   };
 
-  const handlePreferenceChange = (key, value) => {
-    localStorage.setItem(key, value);
-    if (key === 'theme') {
-      setTheme(value);
-      // Apply theme immediately
-      if (value === 'dark') {
-        document.body.classList.remove('light');
-      } else if (value === 'light') {
-        document.body.classList.add('light');
-      } else {
-        // auto theme based on system preference
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.body.classList.toggle('light', !prefersDark);
-      }
+  // ── Save preferences to localStorage
+  const handleSavePreferences = async () => {
+    setPrefLoading(true);
+    setPrefMsg('');
+    const prefs = { notifications, currency, dateFormat, theme, compactView, autoBackup };
+
+    Object.entries(prefs).forEach(([k, v]) => localStorage.setItem(k, String(v)));
+
+    if (theme === 'dark') document.body.classList.remove('light');
+    else if (theme === 'light') document.body.classList.add('light');
+    else {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.body.classList.toggle('light', !prefersDark);
     }
+
+    setPrefMsg('Preferences saved!');
+    setPrefLoading(false);
   };
 
+  // ── Update profile
   const handleUpdateProfile = async () => {
     if (!name.trim()) return setProfileMsg('Name cannot be empty.');
-    const token = localStorage.getItem('token');
     try {
-      const response = await fetch(`${API_BASE}/users/${user._id}`, {
+      const res = await fetch(`${API_BASE}/users/update/${user._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -98,18 +100,20 @@ const Settings = () => {
         },
         body: JSON.stringify({ name, email }),
       });
-      if (!response.ok) throw new Error('Update failed');
-      const updated = await response.json();
-      localStorage.setItem('user', JSON.stringify({ ...user, name: updated.name, email: updated.email }));
+      if (!res.ok) throw new Error();
+      const updated = await res.json();
+      // backend returns { user: { name, email } }
+      const updatedName = updated.user?.name || name;
+      const updatedEmail = updated.user?.email || email;
+      localStorage.setItem('user', JSON.stringify({ ...user, name: updatedName, email: updatedEmail }));
       setProfileMsg('Profile updated successfully!');
-
-      // Dispatch custom event to notify other components
       window.dispatchEvent(new CustomEvent('userProfileUpdated'));
-    } catch (err) {
+    } catch {
       setProfileMsg('Failed to update profile. Please try again.');
     }
   };
 
+  // ── Change password
   const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword)
       return setPasswordMsg('Please fill all password fields.');
@@ -117,9 +121,8 @@ const Settings = () => {
       return setPasswordMsg('New passwords do not match.');
     if (newPassword.length < 6)
       return setPasswordMsg('Password must be at least 6 characters.');
-    const token = localStorage.getItem('token');
     try {
-      const response = await fetch(`${API_BASE}/users/${user._id}/password`, {
+      const res = await fetch(`${API_BASE}/users/change-password/${user._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -127,21 +130,21 @@ const Settings = () => {
         },
         body: JSON.stringify({ currentPassword, newPassword }),
       });
-      if (!response.ok) {
-        const data = await response.json();
-        return setPasswordMsg(data.message || 'Failed to change password.');
-      }
+      const data = await res.json();
+      if (!res.ok) return setPasswordMsg(data.message || 'Failed to change password.');
       setPasswordMsg('Password changed successfully!');
-      setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
-    } catch (err) {
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch {
       setPasswordMsg('Server error. Please try again.');
     }
   };
 
+  // ── Delete account
   const handleDeleteAccount = async () => {
-    const token = localStorage.getItem('token');
     try {
-      await fetch(`${API_BASE}/users/${user._id}`, {
+      await fetch(`${API_BASE}/users/delete/${user._id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -149,39 +152,46 @@ const Settings = () => {
       localStorage.removeItem('token');
       localStorage.removeItem('goals');
       navigate('/login');
-    } catch (err) {
+    } catch {
       alert('Failed to delete account. Try again.');
     }
   };
 
   const handleLogout = () => {
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
     navigate('/login');
   };
 
   const handleExportData = () => {
-    const goals = localStorage.getItem('goals') || '[]';
-    const dataStr = JSON.stringify({ user, goals: JSON.parse(goals) }, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `trackmycash_export_${user.name}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const goals = localStorage.getItem('goals') || '[]';
+      const dataStr = JSON.stringify({ user, goals: JSON.parse(goals) }, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `trackmycash_export_${user.name}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('Failed to export data.');
+    }
   };
 
-  if (!user) return null;
+  if (!user) {
+    navigate('/login');
+    return null;
+  }
 
   return (
     <div className="settings-wrapper">
+
       {/* Account Overview */}
       <section className="settings-card overview">
         <div className="settings-header">
           <h3>Account Overview</h3>
-          <div className="user-avatar-large">
-            {user.name.charAt(0).toUpperCase()}
-          </div>
+          <div className="user-avatar-large">{user.name?.charAt(0).toUpperCase()}</div>
         </div>
         <div className="account-stats">
           <div className="stat-item">
@@ -199,7 +209,9 @@ const Settings = () => {
           <div className="stat-item">
             <span className="stat-label">Member Since</span>
             <span className="stat-value">
-              {accountStats.oldestExpense ? accountStats.oldestExpense.toLocaleDateString() : 'N/A'}
+              {accountStats.oldestExpense
+                ? accountStats.oldestExpense.toLocaleDateString()
+                : 'N/A'}
             </span>
           </div>
         </div>
@@ -236,7 +248,7 @@ const Settings = () => {
         )}
       </section>
 
-      {/* Security Settings */}
+      {/* Security */}
       <section className="settings-card">
         <h3>Security Settings</h3>
         <div className="settings-field">
@@ -282,10 +294,7 @@ const Settings = () => {
 
         <div className="settings-field">
           <label>Theme</label>
-          <select
-            value={theme}
-            onChange={e => handlePreferenceChange('theme', e.target.value)}
-          >
+          <select value={theme} onChange={e => setTheme(e.target.value)}>
             <option value="auto">Auto (System)</option>
             <option value="light">Light</option>
             <option value="dark">Dark</option>
@@ -294,10 +303,7 @@ const Settings = () => {
 
         <div className="settings-field">
           <label>Currency</label>
-          <select
-            value={currency}
-            onChange={e => handlePreferenceChange('currency', e.target.value)}
-          >
+          <select value={currency} onChange={e => setCurrency(e.target.value)}>
             <option value="INR">Indian Rupee (₹)</option>
             <option value="USD">US Dollar ($)</option>
             <option value="EUR">Euro (€)</option>
@@ -307,10 +313,7 @@ const Settings = () => {
 
         <div className="settings-field">
           <label>Date Format</label>
-          <select
-            value={dateFormat}
-            onChange={e => handlePreferenceChange('dateFormat', e.target.value)}
-          >
+          <select value={dateFormat} onChange={e => setDateFormat(e.target.value)}>
             <option value="DD/MM/YYYY">DD/MM/YYYY</option>
             <option value="MM/DD/YYYY">MM/DD/YYYY</option>
             <option value="YYYY-MM-DD">YYYY-MM-DD</option>
@@ -326,10 +329,7 @@ const Settings = () => {
             <input
               type="checkbox"
               checked={compactView}
-              onChange={e => {
-                setCompactView(e.target.checked);
-                handlePreferenceChange('compactView', e.target.checked.toString());
-              }}
+              onChange={e => setCompactView(e.target.checked)}
             />
             <span className="toggle-slider"></span>
           </label>
@@ -344,10 +344,7 @@ const Settings = () => {
             <input
               type="checkbox"
               checked={notifications}
-              onChange={e => {
-                setNotifications(e.target.checked);
-                handlePreferenceChange('notifications', e.target.checked.toString());
-              }}
+              onChange={e => setNotifications(e.target.checked)}
             />
             <span className="toggle-slider"></span>
           </label>
@@ -362,14 +359,24 @@ const Settings = () => {
             <input
               type="checkbox"
               checked={autoBackup}
-              onChange={e => {
-                setAutoBackup(e.target.checked);
-                handlePreferenceChange('autoBackup', e.target.checked.toString());
-              }}
+              onChange={e => setAutoBackup(e.target.checked)}
             />
             <span className="toggle-slider"></span>
           </label>
         </div>
+
+        <button
+          className="settings-btn primary"
+          onClick={handleSavePreferences}
+          disabled={prefLoading}
+        >
+          {prefLoading ? 'Saving...' : 'Save Preferences'}
+        </button>
+        {prefMsg && (
+          <p className={`settings-msg ${prefMsg.includes('saved!') ? 'success' : 'error'}`}>
+            {prefMsg}
+          </p>
+        )}
       </section>
 
       {/* Data Management */}
@@ -409,24 +416,23 @@ const Settings = () => {
           <input
             type="file"
             accept=".json"
+            id="import-file"
+            style={{ display: 'none' }}
             onChange={(e) => {
               const file = e.target.files[0];
-              if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                  try {
-                    const data = JSON.parse(event.target.result);
-                    if (data.goals) localStorage.setItem('goals', JSON.stringify(data.goals));
-                    alert('Data imported successfully!');
-                  } catch (err) {
-                    alert('Invalid file format.');
-                  }
-                };
-                reader.readAsText(file);
-              }
+              if (!file) return;
+              const reader = new FileReader();
+              reader.onload = (event) => {
+                try {
+                  const data = JSON.parse(event.target.result);
+                  if (data.goals) localStorage.setItem('goals', JSON.stringify(data.goals));
+                  alert('Data imported successfully!');
+                } catch {
+                  alert('Invalid file format.');
+                }
+              };
+              reader.readAsText(file);
             }}
-            style={{ display: 'none' }}
-            id="import-file"
           />
           <button
             className="settings-outline-btn"
@@ -455,19 +461,23 @@ const Settings = () => {
             <p className="data-description">Permanently delete your account and all associated data</p>
           </div>
           {!showDeleteConfirm ? (
-            <button className="settings-outline-btn danger" onClick={() => setShowDeleteConfirm(true)}>
+            <button
+              className="settings-outline-btn danger"
+              onClick={() => setShowDeleteConfirm(true)}
+            >
               Delete Account
             </button>
           ) : (
             <div className="settings-delete-confirm">
-              <p className="confirm-message">
-                Are you sure you want to delete your account? This action cannot be undone and will permanently remove all your data.
-              </p>
+              <p className="confirm-message">Are you sure? This cannot be undone.</p>
               <div className="confirm-actions">
                 <button className="settings-btn danger" onClick={handleDeleteAccount}>
                   Yes, Delete My Account
                 </button>
-                <button className="settings-outline-btn" onClick={() => setShowDeleteConfirm(false)}>
+                <button
+                  className="settings-outline-btn"
+                  onClick={() => setShowDeleteConfirm(false)}
+                >
                   Cancel
                 </button>
               </div>
@@ -475,6 +485,7 @@ const Settings = () => {
           )}
         </div>
       </section>
+
     </div>
   );
 };

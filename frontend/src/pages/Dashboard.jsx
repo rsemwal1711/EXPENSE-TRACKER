@@ -41,18 +41,13 @@ const TESTIMONIALS = [
 const PLANS = [
   {
     name: "Free", price: "0 XP", period: "to unlock",
-    features: ["Up to 50 transactions/month", "3 spending categories", "Basic charts", "1 savings goal"],
+    features: ["Limited Transactions", "Access to Overview", "Goals", "Charts"],
     cta: "Get Started", highlight: false,
   },
   {
     name: "Pro", price: "1,500 XP", period: "per month",
-    features: ["Unlimited transactions", "Unlimited categories", "Advanced analytics", "Unlimited goals", "Budget alerts", "CSV export", "Priority support"],
+    features: ["Unlimited transactions", "Unlimited categories", "Advanced analytics", "Unlimited goals", "Budget alerts"],
     cta: "Unlock with XP", highlight: true,
-  },
-  {
-    name: "Family", price: "2,500 XP", period: "per month",
-    features: ["Everything in Pro", "Up to 5 members", "Shared expense tracking", "Family budget view", "Dedicated support"],
-    cta: "Unlock with XP", highlight: false,
   },
 ];
 
@@ -77,17 +72,45 @@ export default function LandingPage() {
   const [hovered, setHovered] = useState(null);
   const navigate = useNavigate();
 
+  const [showSig, setShowSig] = useState(false);
+
+useEffect(() => {
+  const timer = setTimeout(() => setShowSig(true), 600);
+  return () => clearTimeout(timer);
+}, []);
+
+const [sigLine, setSigLine] = useState("");
+
+useEffect(() => {
+  if (!showSig) return;
+
+  const grow = setTimeout(() => setSigLine("grow"), 1400);
+  const shrink = setTimeout(() => setSigLine("shrink"), 2400);
+  const clear = setTimeout(() => setSigLine(""), 3200);
+
+  return () => {
+    clearTimeout(grow);
+    clearTimeout(shrink);
+    clearTimeout(clear);
+  };
+}, [showSig]);
+
+// Call this wherever your login success handler runs, e.g.:
+// showSignature();
+
   return (
+    
     <div className={`lp-root ${dark ? "theme-dark" : "theme-light"}`}>
       <div className="lp-orb lp-orb-1" />
       <div className="lp-orb lp-orb-2" />
-      <div className="lp-grid-overlay" />
+      <div className="lp-grid-overlay" /> 
 
       {/* ── NAVBAR ── */}
       <nav className="lp-nav lp-nav--full">
         <div className="lp-logo">
           <span className="lp-logo-mark">⬡</span>
           <span className="lp-logo-text">TrackMyCash</span>
+          <br /><br /><br /><br />
         </div>
         <div className="lp-nav-links">
           <a href="#features" className="lp-nav-link">Features</a>
@@ -103,6 +126,13 @@ export default function LandingPage() {
           <span className="lp-headline-line lp-delay-2">Your money,</span>
           <span className="lp-headline-line lp-headline-accent lp-delay-3">finally clear.</span>
         </h1>
+
+      <div className={`lp-signature ${showSig ? "animate" : ""}`}>
+        <span>Made by Rajat Semwal</span>
+      </div>
+      <div className={`lp-sig-line ${sigLine}`} />
+
+
         <p className="lp-slogan lp-delay-4">
           Track every rupee. Spot every pattern.<br />
           Take control before your next expense takes control of you.
@@ -113,7 +143,7 @@ export default function LandingPage() {
             onMouseEnter={() => setHovered("signup")}
             onMouseLeave={() => setHovered(null)}
             onClick={() => window.location.href = "/signup"}
-          >
+            >
             <span>Start for Free</span>
             <span className="lp-btn-arrow">→</span>
           </button>
@@ -122,7 +152,7 @@ export default function LandingPage() {
             onMouseEnter={() => setHovered("login")}
             onMouseLeave={() => setHovered(null)}
             onClick={() => window.location.href = "/login"}
-          >
+            >
             Sign In
           </button>
         </div>

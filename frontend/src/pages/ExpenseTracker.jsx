@@ -188,7 +188,7 @@ const ExpenseTracker = () => {
       case 'settings':
         return <Settings />;
        case 'receipts':
-        return <Receipts />;
+        return <Receipts expenses={expenses} />;
       default:
         return (
           <>

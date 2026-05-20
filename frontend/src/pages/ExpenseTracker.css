@@ -1651,3 +1651,28 @@ body.light .activity-arrow {
     font-size: 10px;
   }
 }
+
+/* Fix for production chart stacking issue */
+.dashboard {
+  position: relative;
+  z-index: 1;
+}
+
+.sidebar {
+  position: fixed;
+  z-index: 200;
+}
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 100;
+}
+
+.recharts-wrapper,
+.recharts-surface,
+canvas {
+  position: relative;
+  z-index: 1;
+}

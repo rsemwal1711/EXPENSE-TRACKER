@@ -326,7 +326,11 @@
               </thead>
               <tbody>
                 {filtered.map((expense, index) => (
-                  <tr key={expense._id}>
+                 <tr 
+                  key={expense._id} 
+                  onClick={() => navigate(`/transaction/${expense._id}`)}
+                  style={{ cursor: 'pointer' }}
+                >
                     {editingId === expense._id ? (
                       <>
                         <td data-label="#">{index + 1}</td>

@@ -69,6 +69,10 @@ const Settings = () => {
       : null,
   };
 
+  const totalIncome = expenses.filter(e => e.type === 'income').reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const totalExpense = expenses.filter(e => e.type !== 'income').reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const total = totalIncome - totalExpense;
+
   // ── Save preferences to localStorage
   const handleSavePreferences = async () => {
     setPrefLoading(true);
@@ -199,8 +203,8 @@ const Settings = () => {
             <span className="stat-value">{accountStats.totalExpenses}</span>
           </div>
           <div className="stat-item">
-            <span className="stat-label">Total Amount</span>
-            <span className="stat-value">₹{accountStats.totalAmount.toLocaleString('en-IN')}</span>
+            <span className="stat-label">Current Balance</span>
+            <span className="stat-value">₹{total.toLocaleString('en-IN')}</span>
           </div>
           <div className="stat-item">
             <span className="stat-label">Average Expense</span>

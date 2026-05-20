@@ -23,15 +23,16 @@ const Receipts = ({ expenses = [] }) => {
   const [selectedYear, setSelectedYear] = useState(
     new Date().getFullYear().toString()
   );
+
   const userData = localStorage.getItem('user');
   const user = userData ? JSON.parse(userData) : null;
-  
+
   // Fetch receipts
   const fetchReceipts = async () => {
     const token = localStorage.getItem('token');
 
     setLoading(true);
-    
+
     try {
       const url =
         filterType === 'month'
@@ -43,9 +44,12 @@ const Receipts = ({ expenses = [] }) => {
           Authorization: `Bearer ${token}`,
         },
       });
-      
+
       const data = await res.json();
-      
+
+      console.log('Receipts:', data);
+      console.log('Expenses:', expenses);
+
       setReceipts(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Fetch receipts error:', err);
@@ -53,41 +57,67 @@ const Receipts = ({ expenses = [] }) => {
       setLoading(false);
     }
   };
-  
+
+  // Initial fetch
   useEffect(() => {
     if (!user) {
       navigate('/login');
       return;
     }
-    
+
     fetchReceipts();
   }, [filterType, selectedMonth, selectedYear]);
-  
+
+  // Re-fetch when expenses load
+  useEffect(() => {
+    if (expenses.length > 0) {
+      fetchReceipts();
+    }
+  }, [expenses.length]);
+
   // Delete receipt
-  const handleDelete = async (receipt) => {
+  const handleDelete = async receipt => {
     const confirmDelete = window.confirm(
       'Delete this receipt?'
     );
 
     if (!confirmDelete) return;
-    
+
     const token = localStorage.getItem('token');
 
     try {
-      await fetch(`${API_BASE}/receipts/${receipt.id}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      
+      await fetch(
+        `${API_BASE}/receipts/${receipt._id || receipt.id}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       setReceipts(prev =>
-        prev.filter(r => r.id !== receipt.id)
+        prev.filter(
+          r =>
+            (r._id || r.id) !==
+            (receipt._id || receipt.id)
+        )
       );
     } catch (err) {
       console.error(err);
       alert('Delete failed');
     }
+  };
+
+  // Match receipt with expense
+  const getMatchedExpense = receipt => {
+    return expenses.find(
+      exp =>
+        String(exp.id) ===
+          String(receipt.transactionId) ||
+        String(exp._id) ===
+          String(receipt.transactionId)
+    );
   };
 
   return (
@@ -176,19 +206,16 @@ const Receipts = ({ expenses = [] }) => {
 
             {receipts.map(receipt => {
 
-              // Match expense using expenseId
-              const matchedExpense = expenses.find(
-                exp =>
-                  exp._id === receipt.expenseId ||
-                  exp.id === receipt.expenseId ||
-                  exp.receiptId === receipt.id ||
-                  exp.fileUrl === receipt.fileUrl
-              );
+              const matchedExpense =
+                getMatchedExpense(receipt);
+
+              const title =
+                matchedExpense?.title || 'Untitled';
 
               return (
 
                 <div
-                  key={receipt.id}
+                  key={receipt._id || receipt.id}
                   className="receipt-card"
                 >
 
@@ -197,13 +224,12 @@ const Receipts = ({ expenses = [] }) => {
                     <>
                       <img
                         src={receipt.fileUrl}
-                        alt={matchedExpense?.title}
+                        alt={title}
                         className="receipt-card-img"
                       />
 
-                      {/* Expense Name */}
                       <p className="receipt-title-below">
-                        {matchedExpense?.title}
+                        {title}
                       </p>
                     </>
                   ) : (
@@ -214,7 +240,7 @@ const Receipts = ({ expenses = [] }) => {
                       <span>📄</span>
 
                       <p className="receipt-title-below">
-                        {matchedExpense?.title}
+                        {title}
                       </p>
 
                     </div>

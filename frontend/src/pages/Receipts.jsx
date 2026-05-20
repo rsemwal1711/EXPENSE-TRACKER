@@ -249,11 +249,7 @@ const Receipts = ({ expenses = [] }) => {
                   {/* Receipt Info */}
                   <div className="receipt-card-info">
 
-                    <p className="receipt-card-date">
-                      {new Date(
-                        receipt.createdAt
-                      ).toLocaleDateString('en-IN')}
-                    </p>
+                   
 
                     <div className="receipt-card-actions">
 

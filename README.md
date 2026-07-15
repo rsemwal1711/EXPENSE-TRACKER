@@ -2,7 +2,6 @@
 
 > Track your expenses, manage budgets, and understand your spending — all in one clean dashboard.
 
-🔗 **Live Demo:** [expense-tracker-frontend-8171.onrender.com](https://expense-tracker-frontend-8171.onrender.com/)
 📂 **Repository:** [github.com/rsemwal1711/EXPENSE-TRACKER](https://github.com/rsemwal1711/EXPENSE-TRACKER)
 
 ---
